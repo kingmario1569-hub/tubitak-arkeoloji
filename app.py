@@ -3,12 +3,8 @@ import pandas as pd
 import folium
 from streamlit_folium import st_folium
 
-st.set_page_config(
-    page_title="Anadolu Yerleşim Tahmin Modeli",
-    page_layout="wide"
-)
+st.set_page_config(page_title="Anadolu Yerleşim Tahmin Modeli", layout="wide")
 
-# İstediğin o şık, antik ve estetik TÜBİTAK Proje Teması
 st.markdown("""
     <style>
     .main {
@@ -37,7 +33,6 @@ except Exception as e:
     st.error("Veri dosyası (yerlesimler.csv) yüklenirken hata oluştu.")
     st.stop()
 
-# Sol Panel - Dönem Seçimi
 st.sidebar.header("⏳ DÖNEM SEÇ")
 donem_listesi = df["donem"].unique()
 secilen_donem = st.sidebar.selectbox("Bir dönem seçiniz:", donem_listesi)
@@ -60,16 +55,13 @@ st.sidebar.info(
     "• **Model:** Random Forest Sınıflandırıcı"
 )
 
-# Filtreleme
 df_filtrelenmis = df[df["donem"] == secilen_donem]
 
 st.subheader(f"Harita Görünümü ve Tahmin Alanları: {secilen_donem}")
 
-# Harita (Hatasız OpenStreetMap altyapısı)
 m = folium.Map(location=[39.0, 35.0], zoom_start=6, tiles="OpenStreetMap")
 
 for _, row in df_filtrelenmis.iterrows():
-    # Renklendirme mantığı
     if "Bilinen" in row["tip"]:
         renk = "#2d4a3e"
     elif "Yüksek" in row["tip"]:
@@ -92,7 +84,6 @@ st_folium(m, width=1200, height=480)
 
 st.markdown("---")
 
-# ALT KISIM: İstediğin gibi seçilen bölgenin detaylı rapor kartı
 st.subheader("📌 Seçilen Bölge / Yerleşim Detay Raporu")
 
 secilen_yerlesim_adi = st.selectbox(
@@ -102,7 +93,6 @@ secilen_yerlesim_adi = st.selectbox(
 
 aktif_satir = df_filtrelenmis[df_filtrelenmis["ad"] == secilen_yerlesim_adi].iloc[0]
 
-# Estetik Kolonlar (Görseldeki gibi alt alta ve düzenli)
 col1, col2, col3, col4, col5 = st.columns(5)
 
 with col1:
