@@ -75,7 +75,7 @@ df_filtrelenmis = df[df["donem"] == secilen_donem]
 
 st.subheader(f"Harita Analizi ve Model Tahminleri: {secilen_donem}")
 
-# Harita Oluşturma (Sabit ve kararlı yapı)
+# Harita Oluşturma (Üzerinde tıklama balonu / popup olmayan, tertemiz görünüm)
 m = folium.Map(
     location=[39.0, 35.0], 
     zoom_start=6, 
@@ -89,7 +89,6 @@ for _, row in df_filtrelenmis.iterrows():
     if "Bilinen" in row["tip"]:
         folium.Marker(
             location=[row["lat"], row["lng"]],
-            popup=f"<b>{row['ad']}</b><br>Durum: Kanıtlanmış Sit<br>Faktör: {row['faktor']}",
             icon=folium.Icon(color="black", icon="bookmark", prefix="fa")
         ).add_to(m)
     else:
@@ -102,17 +101,17 @@ for _, row in df_filtrelenmis.iterrows():
             fill=True,
             fill_color=renk,
             fill_opacity=0.9,
-            popup=f"<b>{row['ad']}</b><br>Durum: {row['durum']}<br>Faktör: {row['faktor']}",
         ).add_to(m)
 
 st_folium(m, width=1200, height=480, returned_objects=[])
 
 st.markdown("---")
 
-st.subheader("📌 Seçilen Bölge / Aday Alan Detay Raporu")
+# Seçim alanı doğrudan haritanın altında yer alıyor ve tüm alt paneli güncelliyor
+st.subheader("📌 İnceleme ve Detay Rapor Paneli")
 
 secilen_yerlesim_adi = st.selectbox(
-    "Haritadan veya listeden incelemek istediğiniz bölgeyi seçin:",
+    "Aşağıdan incelemek istediğiniz bölgeyi seçin (Bilgiler anında bu karta yansıyacaktır):",
     df_filtrelenmis["ad"].tolist(),
 )
 
