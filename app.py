@@ -24,7 +24,7 @@ st.markdown("""
 st.title("🏛️ Anadolu Neolitik, Kalkolitik ve Tunç Çağı Yapay Zeka Tahmin Modeli")
 st.markdown("TAY veritabanı ve SRTM DEM coğrafi parametreleri kullanılarak Random Forest algoritmasıyla üretilen coğrafi tahmin prototipi.")
 
-# Veri Seti (Bilinenler için olasılık yerine "Kanıtlanmış Sit", adaylar için yüzdelik olasılık)
+# Kapsamlı ve Zenginleştirilmiş Arkeolojik Veri Seti
 data = [
     # Neolitik Çağ
     {"ad": "Göbekli Tepe (Bilinen)", "donem": "Neolitik Çağ", "lat": 37.2222, "lng": 38.9222, "tip": "Bilinen Yerleşim", "yukseklik": "760 m", "su_mesafesi": "2.1 km", "egim": "Orta (%8)", "toprak": "Yüksek verimlilik", "faktor": "Stratejik Tepe / Dinsel Merkez", "durum": "Kanıtlanmış Arkeolojik Sit"},
@@ -75,7 +75,7 @@ df_filtrelenmis = df[df["donem"] == secilen_donem]
 
 st.subheader(f"Harita Analizi ve Model Tahminleri: {secilen_donem}")
 
-# Harita Oluşturma
+# Harita Oluşturma (Sabit ve kararlı yapı)
 m = folium.Map(
     location=[39.0, 35.0], 
     zoom_start=6, 
@@ -89,7 +89,7 @@ for _, row in df_filtrelenmis.iterrows():
     if "Bilinen" in row["tip"]:
         folium.Marker(
             location=[row["lat"], row["lng"]],
-            popup=f"<b>{row['ad']}</b> (Kanıtlanmış Sit)<br>Faktör: {row['faktor']}",
+            popup=f"<b>{row['ad']}</b><br>Durum: Kanıtlanmış Sit<br>Faktör: {row['faktor']}",
             icon=folium.Icon(color="black", icon="bookmark", prefix="fa")
         ).add_to(m)
     else:
@@ -112,12 +112,13 @@ st.markdown("---")
 st.subheader("📌 Seçilen Bölge / Aday Alan Detay Raporu")
 
 secilen_yerlesim_adi = st.selectbox(
-    "İncelemek istediğiniz tahminî veya bilinen bölgeyi seçin:",
+    "Haritadan veya listeden incelemek istediğiniz bölgeyi seçin:",
     df_filtrelenmis["ad"].tolist(),
 )
 
 aktif_satir = df_filtrelenmis[df_filtrelenmis["ad"] == secilen_yerlesim_adi].iloc[0]
 
+# Şık Antika Detay Kutusu
 st.markdown(
     f"""
     <div style="background-color: #ece2c3; border: 2px solid #b5a47c; padding: 22px; border-radius: 8px; margin-top: 10px;">
@@ -129,7 +130,6 @@ col_baslik, col_rozets = st.columns([4, 1])
 with col_baslik:
     st.markdown(f"### {aktif_satir['ad']}")
 with col_rozets:
-    # Bilinen yerleşimler için "Kanıtlanmış Sit", adaylar için olasılık rozeti
     rozet_bg = "#2b2b2b" if "Bilinen" in aktif_satir['tip'] else "#d9c39a"
     rozet_renk = "#ffffff" if "Bilinen" in aktif_satir['tip'] else "#7a3e1e"
     st.markdown(f"<div style='background-color: {rozet_bg}; border: 1px solid #b5a47c; padding: 8px 12px; border-radius: 6px; text-align: center; font-weight: bold; color: {rozet_renk}; font-size: 13px;'>{aktif_satir['durum']}</div>", unsafe_allow_html=True)
