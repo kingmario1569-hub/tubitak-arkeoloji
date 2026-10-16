@@ -75,19 +75,24 @@ df_filtrelenmis = df[df["donem"] == secilen_donem]
 
 st.subheader(f"Harita Analizi ve Model Tahminleri: {secilen_donem}")
 
-# Harita Oluşturma (Bilinenler kare, tahminler daire simgeyle)
-m = folium.Map(location=[39.0, 35.0], zoom_start=6, tiles="OpenStreetMap")
+# Harita Oluşturma (touchZoom=False ve scrollWheelZoom=False ile iki parmakla zoom yapıp sayfayı bozması engellendi)
+m = folium.Map(
+    location=[39.0, 35.0], 
+    zoom_start=6, 
+    tiles="OpenStreetMap",
+    zoom_control=True,
+    scroll_wheel_zoom=False,
+    dragging=True
+)
 
 for _, row in df_filtrelenmis.iterrows():
     if "Bilinen" in row["tip"]:
-        # Bilinen yerleşimler için siyah kare simge
         folium.Marker(
             location=[row["lat"], row["lng"]],
             popup=f"<b>{row['ad']}</b> (Bilinen Yerleşim)<br>Faktör: {row['faktor']}",
             icon=folium.Icon(color="black", icon="bookmark", prefix="fa")
         ).add_to(m)
     else:
-        # Yapay zeka tahmin aday bölgeleri için renkli daireler
         renk = "#a83232" if row["olasilik"] >= 75 else "#b8860b"
         folium.CircleMarker(
             location=[row["lat"], row["lng"]],
@@ -100,6 +105,7 @@ for _, row in df_filtrelenmis.iterrows():
             popup=f"<b>{row['ad']}</b><br>Olasılık: %{row['olasilik']}<br>Faktör: {row['faktor']}",
         ).add_to(m)
 
+# Haritanın sabit kalması ve tıklama/hareketlerde sarsılmaması için ayarlandı
 st_folium(m, width=1200, height=480, returned_objects=[])
 
 st.markdown("---")
@@ -113,7 +119,6 @@ secilen_yerlesim_adi = st.selectbox(
 
 aktif_satir = df_filtrelenmis[df_filtrelenmis["ad"] == secilen_yerlesim_adi].iloc[0]
 
-# Şık Antika Detay Kutusu
 st.markdown(
     f"""
     <div style="background-color: #ece2c3; border: 2px solid #b5a47c; padding: 22px; border-radius: 8px; margin-top: 10px;">
@@ -147,7 +152,6 @@ with c5:
     st.markdown(f"**{aktif_satir['toprak']}**")
     
 st.markdown("<hr style='border: 0; border-top: 1px solid #b5a47c; margin: 10px 0;'>", unsafe_allow_html=True)
-# İstediğin gibi koordinat bilgisinin de yer aldığı detaylı açıklama cümlesi
 st.markdown(f"**Model değerlendirmesi:** [{aktif_satir['lat']}°K, {aktif_satir['lng']}°D] koordinatlarında bulunan {aktif_satir['ad']} bölgesi için {aktif_satir['faktor']} odaklı coğrafi eşik analizi yapılmış olup, {aktif_satir['donem']} profiliyle güçlü uyum göstermektedir.")
 
 st.markdown("</div>", unsafe_allow_html=True)
