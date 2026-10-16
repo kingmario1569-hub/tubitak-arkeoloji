@@ -5,7 +5,7 @@ from streamlit_folium import st_folium
 
 st.set_page_config(page_title="Anadolu Arkeolojik Yerleşim Tahmin ve Analiz Sistemi", layout="wide")
 
-# Arkeolojik / Antik Parşömen Teması (Buram buram arkeoloji hissi için özel CSS)
+# Arkeolojik / Antik Parşömen Teması
 st.markdown("""
     <style>
     .main {
@@ -18,20 +18,13 @@ st.markdown("""
         color: #3b2b1a;
         font-family: 'Georgia', serif;
     }
-    .report-card {
-        background-color: #ece2c3;
-        border: 2px solid #b5a47c;
-        padding: 20px;
-        border-radius: 8px;
-        margin-top: 20px;
-    }
     </style>
 """, unsafe_allow_html=True)
 
 st.title("🏛️ Anadolu Neolitik, Kalkolitik ve Tunç Çağı Yapay Zeka Tahmin Modeli")
-st.markdown("TAY veritabanı ve SRTM DEM coğrafi parametreleri (yükseklik, eğim, su yakınlığı) kullanılarak Random Forest algoritmasıyla üretilen yüksek doğruluklu coğrafi tahmin prototipi.")
+st.markdown("TAY veritabanı ve SRTM DEM coğrafi parametreleri kullanılarak Random Forest algoritmasıyla üretilen coğrafi tahmin prototipi.")
 
-# Zenginleştirilmiş ve çoğaltılmış Makine Öğrenmesi Tahmin Veri Seti
+# Zenginleştirilmiş Yapay Zeka Tahmin Veri Seti
 data = [
     # Neolitik Çağ
     {"ad": "Göbekli Tepe (Bilinen)", "donem": "Neolitik Çağ", "lat": 37.2222, "lng": 38.9222, "tip": "Bilinen Yerleşim", "yukseklik": "760 m", "su_mesafesi": "2.1 km", "egim": "Orta (%8)", "toprak": "Yüksek verimlilik", "faktor": "Stratejik Tepe / Dinsel Merkez", "olasilik": 99},
@@ -78,12 +71,11 @@ st.sidebar.info(
     "• **Model:** Random Forest (ML)"
 )
 
-# Filtreleme
 df_filtrelenmis = df[df["donem"] == secilen_donem]
 
 st.subheader(f"Harita Analizi ve Model Tahminleri: {secilen_donem}")
 
-# Harita
+# Harita Oluşturma
 m = folium.Map(location=[39.0, 35.0], zoom_start=6, tiles="OpenStreetMap")
 
 for _, row in df_filtrelenmis.iterrows():
@@ -105,11 +97,11 @@ for _, row in df_filtrelenmis.iterrows():
         popup=f"<b>{row['ad']}</b><br>Olasılık: %{row['olasilik']}<br>Faktör: {row['faktor']}",
     ).add_to(m)
 
-st_folium(m, width=1200, height=480)
+# DİKKAT: returned_objects=[] ile fare hareketlerinde haritanın zıplaması/yeniden yüklenmesi engellendi!
+st_folium(m, width=1200, height=480, returned_objects=[])
 
 st.markdown("---")
 
-# İstediğin Görsele Birebir Benzeyen Alt Detay Paneli
 st.subheader("📌 Seçilen Bölge / Aday Alan Detay Raporu")
 
 secilen_yerlesim_adi = st.selectbox(
@@ -119,44 +111,40 @@ secilen_yerlesim_adi = st.selectbox(
 
 aktif_satir = df_filtrelenmis[df_filtrelenmis["ad"] == secilen_yerlesim_adi].iloc[0]
 
-# Ekran görüntüsündeki tasarımı tam yansıtan şık kutu yapısı
-st.markdown(f"""
-<div class="report-card">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-        <h3 style="margin: 0; color: #3b2b1a;">{aktif_satir['ad']}</h3>
-        <div style="background-color: #d9c39a; border: 1px solid #b5a47c; padding: 6px 14px; border-radius: 4px; font-weight: bold; color: #7a3e1e;">
-            %{aktif_satir['olasilik']} olasılık
-        </div>
-    </div>
+# HTML metin hatasını tamamen önleyen, şık antika kutu tasarımı
+st.markdown(
+    f"""
+    <div style="background-color: #ece2c3; border: 2px solid #b5a47c; padding: 22px; border-radius: 8px; margin-top: 10px;">
+    """, 
+    unsafe_allow_html=True
+)
+
+col_baslik, col_rozets = st.columns([4, 1])
+with col_baslik:
+    st.markdown(f"### {aktif_satir['ad']}")
+with col_rozets:
+    st.markdown(f"<div style='background-color: #d9c39a; border: 1px solid #b5a47c; padding: 8px 12px; border-radius: 6px; text-align: center; font-weight: bold; color: #7a3e1e;'>%{aktif_satir['olasilik']} olasılık</div>", unsafe_allow_html=True)
+
+st.markdown("<hr style='border: 0; border-top: 1px solid #b5a47c; margin: 10px 0;'>", unsafe_allow_html=True)
+
+c1, c2, c3, c4, c5 = st.columns(5)
+with c1:
+    st.caption("Konum")
+    st.markdown(f"**{aktif_satir['lat']}°K, {aktif_satir['lng']}°D**")
+with c2:
+    st.caption("Yükseklik")
+    st.markdown(f"**{aktif_satir['yukseklik']}**")
+with c3:
+    st.caption("Su kaynağına mesafe")
+    st.markdown(f"**{aktif_satir['su_mesafesi']}**")
+with c4:
+    st.caption("Eğim")
+    st.markdown(f"**{aktif_satir['egim']}**")
+with c5:
+    st.caption("Toprak verimliliği")
+    st.markdown(f"**{aktif_satir['toprak']}**")
     
-    <div style="display: flex; justify-content: space-between; text-align: left; gap: 20px; font-size: 15px;">
-        <div>
-            <span style="color: #6e5e43; font-size: 13px; display: block;">Konum</span>
-            <b>{aktif_satir['lat']}°K, {aktif_satir['lng']}°D</b>
-        </div>
-        <div>
-            <span style="color: #6e5e43; font-size: 13px; display: block;">Yükseklik</span>
-            <b>{aktif_satir['yukseklik']}</b>
-        </div>
-        <div>
-            <span style="color: #6e5e43; font-size: 13px; display: block;">Su kaynağına mesafe</span>
-            <b>{aktif_satir['su_mesafesi']}</b>
-        </div>
-        <div>
-            <span style="color: #6e5e43; font-size: 13px; display: block;">Eğim</span>
-            <b>{aktif_satir['egim']}</b>
-        </div>
-        <div>
-            <span style="color: #6e5e43; font-size: 13px; display: block;">Toprak verimliliği</span>
-            <b>{aktif_satir['toprak']}</b>
-        </div>
-    </div>
-    
-    <hr style="border: 0; border-top: 1px solid #b5a47c; margin: 15px 0;">
-    
-    <div>
-        <span style="color: #6e5e43; font-size: 13px;">Model değerlendirmesi:</span>
-        <span style="color: #3b2b1a; font-weight: 500;"> {aktif_satir['faktor']} odaklı coğrafi eşik analizi yapılmış olup, {aktif_satir['donem']} profiliyle güçlü uyum göstermektedir.</span>
-    </div>
-</div>
-""", unsafe_allow_html=True)
+st.markdown("<hr style='border: 0; border-top: 1px solid #b5a47c; margin: 10px 0;'>", unsafe_allow_html=True)
+st.markdown(f"**Model değerlendirmesi:** {aktif_satir['faktor']} odaklı coğrafi eşik analizi yapılmış olup, {aktif_satir['donem']} profiliyle güçlü uyum göstermektedir.")
+
+st.markdown("</div>", unsafe_allow_html=True)
