@@ -24,7 +24,7 @@ st.markdown("""
 st.title("🏛️ Anadolu Neolitik, Kalkolitik ve Tunç Çağı Yapay Zeka Tahmin Modeli")
 st.markdown("TAY veritabanı ve SRTM DEM coğrafi parametreleri kullanılarak Random Forest algoritmasıyla üretilen coğrafi tahmin prototipi.")
 
-# Zenginleştirilmiş Yapay Zeka Tahmin Veri Seti
+# Zenginleştirilmiş Tahmin ve Bilinen Yerleşim Veri Seti
 data = [
     # Neolitik Çağ
     {"ad": "Göbekli Tepe (Bilinen)", "donem": "Neolitik Çağ", "lat": 37.2222, "lng": 38.9222, "tip": "Bilinen Yerleşim", "yukseklik": "760 m", "su_mesafesi": "2.1 km", "egim": "Orta (%8)", "toprak": "Yüksek verimlilik", "faktor": "Stratejik Tepe / Dinsel Merkez", "olasilik": 99},
@@ -57,9 +57,9 @@ secilen_donem = st.sidebar.selectbox("Arkeolojik Dönem:", donem_listesi)
 st.sidebar.markdown("---")
 st.sidebar.subheader("📌 LEJANT")
 st.sidebar.markdown(
-    "🔴 **Yüksek Olasılık (%70+)**<br>"
-    "🟡 **Orta Olasılık (%40–70)**<br>"
-    "⚫ **Bilinen (Kazılmış) Yerleşim**",
+    "⬛ **Bilinen (Kazılmış) Yerleşim**<br>"
+    "🔴 **Yüksek Olasılık Tahmini (%70+)**<br>"
+    "🟡 **Orta Olasılık Tahmini (%40–70)**",
     unsafe_allow_html=True
 )
 
@@ -75,29 +75,31 @@ df_filtrelenmis = df[df["donem"] == secilen_donem]
 
 st.subheader(f"Harita Analizi ve Model Tahminleri: {secilen_donem}")
 
-# Harita Oluşturma
+# Harita Oluşturma (Bilinenler kare, tahminler daire simgeyle)
 m = folium.Map(location=[39.0, 35.0], zoom_start=6, tiles="OpenStreetMap")
 
 for _, row in df_filtrelenmis.iterrows():
     if "Bilinen" in row["tip"]:
-        renk = "#2b2b2b"
-    elif row["olasilik"] >= 75:
-        renk = "#a83232"
+        # Bilinen yerleşimler için siyah kare simge
+        folium.Marker(
+            location=[row["lat"], row["lng"]],
+            popup=f"<b>{row['ad']}</b> (Bilinen Yerleşim)<br>Faktör: {row['faktor']}",
+            icon=folium.Icon(color="black", icon="bookmark", prefix="fa")
+        ).add_to(m)
     else:
-        renk = "#b8860b"
-        
-    folium.CircleMarker(
-        location=[row["lat"], row["lng"]],
-        radius=11,
-        color="#ffffff",
-        weight=2,
-        fill=True,
-        fill_color=renk,
-        fill_opacity=0.9,
-        popup=f"<b>{row['ad']}</b><br>Olasılık: %{row['olasilik']}<br>Faktör: {row['faktor']}",
-    ).add_to(m)
+        # Yapay zeka tahmin aday bölgeleri için renkli daireler
+        renk = "#a83232" if row["olasilik"] >= 75 else "#b8860b"
+        folium.CircleMarker(
+            location=[row["lat"], row["lng"]],
+            radius=11,
+            color="#ffffff",
+            weight=2,
+            fill=True,
+            fill_color=renk,
+            fill_opacity=0.9,
+            popup=f"<b>{row['ad']}</b><br>Olasılık: %{row['olasilik']}<br>Faktör: {row['faktor']}",
+        ).add_to(m)
 
-# DİKKAT: returned_objects=[] ile fare hareketlerinde haritanın zıplaması/yeniden yüklenmesi engellendi!
 st_folium(m, width=1200, height=480, returned_objects=[])
 
 st.markdown("---")
@@ -111,7 +113,7 @@ secilen_yerlesim_adi = st.selectbox(
 
 aktif_satir = df_filtrelenmis[df_filtrelenmis["ad"] == secilen_yerlesim_adi].iloc[0]
 
-# HTML metin hatasını tamamen önleyen, şık antika kutu tasarımı
+# Şık Antika Detay Kutusu
 st.markdown(
     f"""
     <div style="background-color: #ece2c3; border: 2px solid #b5a47c; padding: 22px; border-radius: 8px; margin-top: 10px;">
@@ -145,6 +147,7 @@ with c5:
     st.markdown(f"**{aktif_satir['toprak']}**")
     
 st.markdown("<hr style='border: 0; border-top: 1px solid #b5a47c; margin: 10px 0;'>", unsafe_allow_html=True)
-st.markdown(f"**Model değerlendirmesi:** {aktif_satir['faktor']} odaklı coğrafi eşik analizi yapılmış olup, {aktif_satir['donem']} profiliyle güçlü uyum göstermektedir.")
+# İstediğin gibi koordinat bilgisinin de yer aldığı detaylı açıklama cümlesi
+st.markdown(f"**Model değerlendirmesi:** [{aktif_satir['lat']}°K, {aktif_satir['lng']}°D] koordinatlarında bulunan {aktif_satir['ad']} bölgesi için {aktif_satir['faktor']} odaklı coğrafi eşik analizi yapılmış olup, {aktif_satir['donem']} profiliyle güçlü uyum göstermektedir.")
 
 st.markdown("</div>", unsafe_allow_html=True)
