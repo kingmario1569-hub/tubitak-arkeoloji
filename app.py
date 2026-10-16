@@ -3,9 +3,10 @@ import streamlit as st
 import folium
 from streamlit_folium import st_folium
 
+# Streamlit yapılandırması (En başta olmalıdır)
 st.set_page_config(
     page_title="Arkeolojik Yerleşim Tahmin ve Analiz Sistemi",
-    page_layout="wide",
+    page_layout="wide"
 )
 
 st.title("🏛️ Anadolu Neolitik, Kalkolitik ve Tunç Çağı Yerleşim Tahmin Modülü")
