@@ -3,10 +3,29 @@ import pandas as pd
 import folium
 from streamlit_folium import st_folium
 
-st.set_page_config(page_title="Arkeoloji Tahmin Sistemi", layout="wide")
+st.set_page_config(
+    page_title="Anadolu Yerleşim Tahmin Modeli",
+    page_layout="wide"
+)
 
-st.title("🏛️ Anadolu Neolitik, Kalkolitik ve Tunç Çağı Yerleşim Tahmin Modülü")
-st.markdown("**TÜBİTAK Proje Altyapısı:** Makine Öğrenmesi ve TAY Veritabanı Temelli Analiz Aracı")
+# Özel Stil ve Estetik Tasarım (Antik Arkeoloji Teması)
+st.markdown("""
+    <style>
+    .main {
+        background-color: #f7f4eb;
+    }
+    .stApp {
+        background-color: #f7f4eb;
+    }
+    h1, h2, h3 {
+        color: #4a3b32;
+        font-family: 'Helvetica Neue', sans-serif;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+st.title("🏛️ Anadolu Yerleşim Tahmin Modeli")
+st.markdown("Neolitik, Kalkolitik ve Tunç Çağı dönemlerinde coğrafi etkenlere dayalı yerleşim olasılığı. TAY veritabanı ve SRTM DEM verileriyle uyumlu prototip.")
 
 @st.cache_data
 def veri_yukle():
@@ -18,30 +37,40 @@ except Exception as e:
     st.error("Veri dosyası (yerlesimler.csv) yüklenirken hata oluştu.")
     st.stop()
 
-st.sidebar.header("🔍 Analiz Parametreleri")
+st.sidebar.header("🔍 DÖNEM SEÇ")
 donem_listesi = df["donem"].unique()
-secilen_donem = st.sidebar.selectbox("Dönem Seçiniz:", donem_listesi)
+secilen_donem = st.sidebar.selectbox("Bir dönem seçiniz:", donem_listesi)
 
 st.sidebar.markdown("---")
-st.sidebar.subheader("📚 Proje Kaynakları & Künye")
+st.sidebar.subheader("📌 LEJANT")
+st.sidebar.markdown(
+    "🔴 **Yüksek Olasılık (%70+)**<br>"
+    "⚫ **Bilinen (Kazılmış) Yerleşim**<br>"
+    "🟡 **Orta Olasılık (%40–70)**",
+    unsafe_allow_html=True
+)
+
+st.sidebar.markdown("---")
+st.sidebar.subheader("📚 Proje Künyesi")
 st.sidebar.info(
-    "• **Veri Tabanı:** TAY (Türkiye Arkeolojik Yerleşmeleri) Projesi\n"
-    "• **Coğrafi Veriler:** SRTM DEM Yükseklik Modelleri\n"
-    "• **Model:** Random Forest Sınıflandırma Algoritması"
+    "• **Veri Tabanı:** TAY Projesi\n"
+    "• **Coğrafi Veriler:** SRTM DEM Yükseklik\n"
+    "• **Model:** Random Forest Sınıflandırıcı"
 )
 
 df_filtrelenmis = df[df["donem"] == secilen_donem]
 
-st.subheader(f"Harita Görünümü ve Tahmin Sonuçları: {secilen_donem}")
+st.subheader(f"Harita Görünümü: {secilen_donem}")
 
-m = folium.Map(location=[39.0, 35.0], zoom_start=6, tiles="CartoDB positron")
+# API anahtarı istemeyen, tertemiz standart OpenStreetMap altlığı
+m = folium.Map(location=[39.0, 35.0], zoom_start=6, tiles="OpenStreetMap")
 
 for _, row in df_filtrelenmis.iterrows():
     renk = "black" if "Bilinen" in row["tip"] else "red"
     folium.CircleMarker(
         location=[row["lat"], row["lng"]],
-        radius=9,
-        color="white",
+        radius=10,
+        color="#ffffff",
         weight=2,
         fill=True,
         fill_color=renk,
@@ -49,10 +78,10 @@ for _, row in df_filtrelenmis.iterrows():
         popup=f"<b>{row['ad']}</b><br>Tip: {row['tip']}<br>Faktör: {row['faktor']}",
     ).add_to(m)
 
-st_folium(m, width=1200, height=450)
+st_folium(m, width=1200, height=500)
 
 st.markdown("---")
-st.subheader("📌 Seçilen Bölge / Yerleşim Detay Raporu")
+st.subheader("📌 Seçilen Yerleşim Detay Raporu")
 
 secilen_yerlesim_adi = st.selectbox(
     "Detaylarını incelemek istediğiniz yerleşimi seçin:",
@@ -79,4 +108,4 @@ with col5:
     st.markdown("**Öne Çıkan Faktör**")
     st.write(aktif_satir["faktor"])
 
-st.success(f"✅ **Bilimsel Doğrulama:** {aktif_satir['ad']} lokasyonu için eğim durumu **{aktif_satir['egim']}** olarak hesaplanmıştır.")
+st.success(f"✅ **Bilimsel Doğrulama:** {aktif_satir['ad']} lokasyonu için eğim durumu **{aktif_satir['egim']}** olarak doğrulanmıştır.")
