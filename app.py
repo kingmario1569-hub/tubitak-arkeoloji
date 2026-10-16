@@ -1,16 +1,12 @@
-import pandas as pd
 import streamlit as st
+import pandas as pd
 import folium
 from streamlit_folium import st_folium
 
-# Streamlit yapılandırması (En başta olmalıdır)
-st.set_page_config(
-    page_title="Arkeolojik Yerleşim Tahmin ve Analiz Sistemi",
-    page_layout="wide"
-)
+st.set_page_config(page_title="Arkeoloji Tahmin Sistemi", layout="wide")
 
 st.title("🏛️ Anadolu Neolitik, Kalkolitik ve Tunç Çağı Yerleşim Tahmin Modülü")
-st.markdown("**TÜBİTAK Proje Altyapısı:** Makine Öğrenmesi (Random Forest) ve TAY Veritabanı Temelli Coğrafi Analiz Aracı")
+st.markdown("**TÜBİTAK Proje Altyapısı:** Makine Öğrenmesi ve TAY Veritabanı Temelli Analiz Aracı")
 
 @st.cache_data
 def veri_yukle():
