@@ -2,10 +2,11 @@ import streamlit as st
 import pandas as pd
 import folium
 from streamlit_folium import st_folium
+import math
 
 st.set_page_config(page_title="Anadolu Arkeolojik Yerleşim Tahmin ve Analiz Sistemi", layout="wide")
 
-# Arkeolojik / Antik Parşömen Teması
+# Antik Parşömen Teması
 st.markdown("""
     <style>
     .main {
@@ -24,7 +25,7 @@ st.markdown("""
 st.title("🏛️ Anadolu Neolitik, Kalkolitik ve Tunç Çağı Yapay Zeka Tahmin Modeli")
 st.markdown("TAY veritabanı ve SRTM DEM coğrafi parametreleri kullanılarak Random Forest algoritmasıyla üretilen coğrafi tahmin prototipi.")
 
-# Kapsamlı ve Zenginleştirilmiş Arkeolojik Veri Seti
+# Kapsamlı Arkeolojik Veri Seti
 data = [
     # Neolitik Çağ
     {"ad": "Göbekli Tepe (Bilinen)", "donem": "Neolitik Çağ", "lat": 37.2222, "lng": 38.9222, "tip": "Bilinen Yerleşim", "yukseklik": "760 m", "su_mesafesi": "2.1 km", "egim": "Orta (%8)", "toprak": "Yüksek verimlilik", "faktor": "Stratejik Tepe / Dinsel Merkez", "durum": "Kanıtlanmış Arkeolojik Sit"},
@@ -74,8 +75,9 @@ st.sidebar.info(
 df_filtrelenmis = df[df["donem"] == secilen_donem]
 
 st.subheader(f"Harita Analizi ve Model Tahminleri: {secilen_donem}")
+st.info("💡 **İpucu:** Harita üzerinde herhangi bir bölgeye tıkladığınızda, aşağıdaki detay raporu anlık olarak tıkladığınız bölgeye göre güncellenecektir.")
 
-# Harita Oluşturma (Üzerinde tıklama balonu / popup olmayan, tertemiz görünüm)
+# Harita Oluşturma
 m = folium.Map(
     location=[39.0, 35.0], 
     zoom_start=6, 
@@ -103,16 +105,36 @@ for _, row in df_filtrelenmis.iterrows():
             fill_opacity=0.9,
         ).add_to(m)
 
-st_folium(m, width=1200, height=480, returned_objects=[])
+# Harita tıklama olayını yakalayabilmek için returned_objects içine 'last_clicked' ekledik
+harita_cikti = st_folium(m, width=1200, height=480, returned_objects=["last_clicked"])
+
+# Otomatik Bölge Belirleme Mantığı (Haritada tıklanan yere en yakın bölgeyi bulur)
+secilen_yerlesim_adi = df_filtrelenmis.iloc[0]["ad"] # Varsayılan ilk bölge
+
+if harita_cikti and "last_clicked" in harita_cikti and harita_cikti["last_clicked"] is not None:
+    tik_lat = harita_cikti["last_clicked"]["lat"]
+    tik_lng = harita_cikti["last_clicked"]["lng"]
+    
+    # Tıklanan koordinata en yakın listedeki bölgeyi hesapla
+    en_kucuk_mesafe = float("inf")
+    en_yakin_bolge = secilen_yerlesim_adi
+    
+    for _, row in df_filtrelenmis.iterrows():
+        mesafe = math.sqrt((row["lat"] - tik_lat)**2 + (row["lng"] - tik_lng)**2)
+        if mesafe < en_kucuk_mesafe:
+            en_kucuk_mesafe = mesafe
+            en_yakin_bolge = row["ad"]
+            
+    secilen_yerlesim_adi = en_yakin_bolge
 
 st.markdown("---")
+st.subheader("📌 Seçilen Bölge / Aday Alan Detay Raporu")
 
-# Seçim alanı doğrudan haritanın altında yer alıyor ve tüm alt paneli güncelliyor
-st.subheader("📌 İnceleme ve Detay Rapor Paneli")
-
+# Kullanıcı isterse menüden de seçebilir, isterse haritadan tıklayabilir (ikisi senkronizedir)
 secilen_yerlesim_adi = st.selectbox(
-    "Aşağıdan incelemek istediğiniz bölgeyi seçin (Bilgiler anında bu karta yansıyacaktır):",
+    "Haritadan tıkladığınız veya listeden seçtiğiniz bölge:",
     df_filtrelenmis["ad"].tolist(),
+    index=list(df_filtrelenmis["ad"].tolist()).index(secilen_yerlesim_adi) if secilen_yerlesim_adi in df_filtrelenmis["ad"].tolist() else 0
 )
 
 aktif_satir = df_filtrelenmis[df_filtrelenmis["ad"] == secilen_yerlesim_adi].iloc[0]
