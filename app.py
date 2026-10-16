@@ -3,26 +3,7 @@ import pandas as pd
 import folium
 from streamlit_folium import st_folium
 
-st.set_page_config(
-    page_title="Anadolu Yerleşim Tahmin Modeli",
-    page_layout="wide"
-)
-
-# Özel Stil ve Estetik Tasarım (Antik Arkeoloji Teması)
-st.markdown("""
-    <style>
-    .main {
-        background-color: #f7f4eb;
-    }
-    .stApp {
-        background-color: #f7f4eb;
-    }
-    h1, h2, h3 {
-        color: #4a3b32;
-        font-family: 'Helvetica Neue', sans-serif;
-    }
-    </style>
-""", unsafe_allow_html=True)
+st.set_page_config(page_title="Anadolu Yerleşim Tahmin Modeli", layout="wide")
 
 st.title("🏛️ Anadolu Yerleşim Tahmin Modeli")
 st.markdown("Neolitik, Kalkolitik ve Tunç Çağı dönemlerinde coğrafi etkenlere dayalı yerleşim olasılığı. TAY veritabanı ve SRTM DEM verileriyle uyumlu prototip.")
@@ -45,8 +26,7 @@ st.sidebar.markdown("---")
 st.sidebar.subheader("📌 LEJANT")
 st.sidebar.markdown(
     "🔴 **Yüksek Olasılık (%70+)**<br>"
-    "⚫ **Bilinen (Kazılmış) Yerleşim**<br>"
-    "🟡 **Orta Olasılık (%40–70)**",
+    "⚫ **Bilinen (Kazılmış) Yerleşim**<br>",
     unsafe_allow_html=True
 )
 
@@ -62,7 +42,6 @@ df_filtrelenmis = df[df["donem"] == secilen_donem]
 
 st.subheader(f"Harita Görünümü: {secilen_donem}")
 
-# API anahtarı istemeyen, tertemiz standart OpenStreetMap altlığı
 m = folium.Map(location=[39.0, 35.0], zoom_start=6, tiles="OpenStreetMap")
 
 for _, row in df_filtrelenmis.iterrows():
