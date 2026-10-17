@@ -65,7 +65,6 @@ st.sidebar.header("⏳ DÖNEM SEÇİMİ")
 donem_listesi = df["donem"].unique()
 secilen_donem = st.sidebar.selectbox("Arkeolojik Dönem:", donem_listesi)
 
-# Dönem değiştiğinde durumları sıfırla
 if st.session_state.aktif_donem != secilen_donem:
     st.session_state.aktif_donem = secilen_donem
     st.session_state.analiz_baslatildi = False
@@ -79,7 +78,7 @@ if st.sidebar.button("▶️ Modeli Çalıştır / Başlat"):
 st.sidebar.markdown("---")
 st.sidebar.subheader("📌 LEJANT")
 st.sidebar.markdown(
-    "⬛ **Bilinen (Kazılmış) Yerleşim** (Siyah Nokta)<br>"
+    "⚫ **Bilinen (Kazılmış) Yerleşim** (Siyah Daire / Beyaz Merkez)<br>"
     "🔴 **Yüksek Olasılık Tahmini (%70+)**<br>"
     "🟡 **Orta Olasılık Tahmini (%40–70)**",
     unsafe_allow_html=True
@@ -123,21 +122,27 @@ else:
 
     for _, row in df_filtrelenmis.iterrows():
         if "Bilinen" in str(row["tip"]):
-            # HTML DivIcon: Tıklamayı engellemeyen tek parçalı sade siyah nokta
-            html_icon = """
-            <div style="
-                background-color: #000000; 
-                border: 2px solid #ffffff; 
-                width: 16px; 
-                height: 16px; 
-                border-radius: 50%; 
-                pointer-events: none;
-                box-shadow: 0 0 4px rgba(0,0,0,0.5);">
-            </div>
-            """
-            folium.Marker(
+            # 1. Dış Siyah Katman (Büyük Çember)
+            folium.CircleMarker(
                 location=[row["lat"], row["lng"]],
-                icon=folium.DivIcon(html=html_icon),
+                radius=10,
+                color="#ffffff",
+                weight=2,
+                fill=True,
+                fill_color="#000000",
+                fill_opacity=1.0,
+                tooltip=row["ad"]
+            ).add_to(m)
+            
+            # 2. İç Beyaz Nokta (Küçük Merkez Çemberi - aynı koordinatta)
+            folium.CircleMarker(
+                location=[row["lat"], row["lng"]],
+                radius=3.5,
+                color="#ffffff",
+                weight=0,
+                fill=True,
+                fill_color="#ffffff",
+                fill_opacity=1.0,
                 tooltip=row["ad"]
             ).add_to(m)
         else:
