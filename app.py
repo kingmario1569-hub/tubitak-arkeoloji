@@ -4,7 +4,7 @@ import folium
 from streamlit_folium import st_folium
 import math
 
-st.set_page_config(page_title="Anadolu and Balkanlar Arkeolojik Yerleşim Tahmin ve Analiz Sistemi", layout="wide")
+st.set_page_config(page_title="Anadolu ve Balkanlar Arkeolojik Yerleşim Tahmin ve Analiz Sistemi", layout="wide")
 
 # Antik Parşömen Teması
 st.markdown("""
@@ -36,7 +36,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.title("Anadolu ve Balkanlar Arkeolojik Yerleşim Yapay Zeka Tahmin Modeli")
+st.title("Anadolu and Balkanlar Arkeolojik Yerleşim Yapay Zeka Tahmin Modeli")
 st.markdown("TAY Projesi ve Balkan Arkeoloji Veritabanı ile SRTM DEM coğrafi parametreleri kullanılarak Random Forest algoritmasıyla üretilen kıtalararası tahmin prototipi.")
 
 # Veriyi doğrudan CSV dosyasından okuma
@@ -65,7 +65,7 @@ st.sidebar.header("⏳ DÖNEM SEÇİMİ")
 donem_listesi = df["donem"].unique()
 secilen_donem = st.sidebar.selectbox("Arkeolojik Dönem:", donem_listesi)
 
-if st.session_state.onceki_donem != secilen_donem:
+if st.sidebar.onceki_donem != secilen_donem if hasattr(st.sidebar, "onceki_donem") else st.session_state.onceki_donem != secilen_donem:
     st.session_state.analiz_baslatildi = False
     st.session_state.secilen_yerlesim = None
     st.session_state.onceki_donem = secilen_donem
@@ -78,7 +78,7 @@ if st.sidebar.button("▶️ Modeli Çalıştır / Başlat"):
 st.sidebar.markdown("---")
 st.sidebar.subheader("📌 LEJANT")
 st.sidebar.markdown(
-    "⬛ **Bilinen (Kazılmış) Yerleşim** (Siyah/Beyaz Nokta)<br>"
+    "⚫ **Bilinen (Kazılmış) Yerleşim** (Siyah Daire / Beyaz Nokta)<br>"
     "🔴 **Yüksek Olasılık Tahmini (%70+)**<br>"
     "🟡 **Orta Olasılık Tahmini (%40–70)**",
     unsafe_allow_html=True
@@ -122,7 +122,6 @@ else:
 
     for _, row in df_filtrelenmis.iterrows():
         if "Bilinen" in str(row["tip"]):
-            # Bilinen yerleşimler: Siyah daire içinde beyaz nokta görünümü için HTML Marker / DivIcon kullanıyoruz
             html_icon = f"""
             <div style="
                 background-color: #000000; 
@@ -174,8 +173,7 @@ else:
                 en_kucuk_mesafe = mesafe
                 en_yakin_bolge = row["ad"]
                 
-        # Tıklanan noktaya en yakın yerleşimi seç (Bilinen veya aday fark etmez)
-        if en_kucuk_mesafe < 2.0:  # Genişletilmiş tıklama toleransı
+        if en_kucuk_mesafe < 2.0:
             st.session_state.secilen_yerlesim = en_yakin_bolge
 
     st.markdown("---")
