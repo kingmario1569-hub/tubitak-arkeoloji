@@ -36,7 +36,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.title("🏛️ Anadolu ve Balkanlar Arkeolojik Yerleşim Yapay Zeka Tahmin Modeli")
+st.title(" Anadolu ve Balkanlar Arkeolojik Yerleşim Yapay Zeka Tahmin Modeli")
 st.markdown("TAY Projesi ve Balkan Arkeoloji Veritabanı ile SRTM DEM coğrafi parametreleri kullanılarak Random Forest algoritmasıyla üretilen kıtalararası tahmin prototipi.")
 
 # Veriyi doğrudan CSV dosyasından okuma
