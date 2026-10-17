@@ -36,7 +36,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.title("Anadolu and Balkanlar Arkeolojik Yerleşim Yapay Zeka Tahmin Modeli")
+st.title("Anadolu ve Balkanlar Arkeolojik Yerleşim Yapay Zeka Tahmin Modeli")
 st.markdown("TAY Projesi ve Balkan Arkeoloji Veritabanı ile SRTM DEM coğrafi parametreleri kullanılarak Random Forest algoritmasıyla üretilen kıtalararası tahmin prototipi.")
 
 # Veriyi doğrudan CSV dosyasından okuma
@@ -50,25 +50,26 @@ except Exception as e:
     st.error(f"Veri yüklenirken hata oluştu ('yerlesimler.csv' dosyasını kontrol edin): {e}")
     st.stop()
 
-# Session State Durumları
+# Session State Değişkenleri
 if "analiz_baslatildi" not in st.session_state:
     st.session_state.analiz_baslatildi = False
 
 if "secilen_yerlesim" not in st.session_state:
     st.session_state.secilen_yerlesim = None
 
-if "onceki_donem" not in st.session_state:
-    st.session_state.onceki_donem = None
+if "aktif_donem" not in st.session_state:
+    st.session_state.aktif_donem = None
 
 # Sol Panel
 st.sidebar.header("⏳ DÖNEM SEÇİMİ")
 donem_listesi = df["donem"].unique()
 secilen_donem = st.sidebar.selectbox("Arkeolojik Dönem:", donem_listesi)
 
-if st.sidebar.onceki_donem != secilen_donem if hasattr(st.sidebar, "onceki_donem") else st.session_state.onceki_donem != secilen_donem:
+# Kullanıcı sol menüden farklı bir dönem seçerse analizi ve seçimi sıfırla
+if st.session_state.aktif_donem != secilen_donem:
+    st.session_state.aktif_donem = secilen_donem
     st.session_state.analiz_baslatildi = False
     st.session_state.secilen_yerlesim = None
-    st.session_state.onceki_donem = secilen_donem
 
 st.sidebar.markdown("<br>", unsafe_allow_html=True)
 if st.sidebar.button("▶️ Modeli Çalıştır / Başlat"):
@@ -94,6 +95,7 @@ st.sidebar.info(
 
 df_filtrelenmis = df[df["donem"] == secilen_donem]
 
+# Eğer başlatılmadıysa boş ekran
 if not st.session_state.analiz_baslatildi:
     st.subheader("Harita Görünümü")
     st.info("👈 **Modeli Çalıştırmak İçin:** Sol menüden dönemi seçtikten sonra **'▶️ Modeli Çalıştır / Başlat'** butonuna basınız.")
@@ -157,6 +159,7 @@ else:
                 fill_opacity=0.9,
             ).add_to(m)
 
+    # Harita etkileşimi (tıklama verisini al)
     harita_cikti = st_folium(m, width=1200, height=480, returned_objects=["last_clicked"])
 
     # Harita Tıklama Algılama
@@ -173,7 +176,7 @@ else:
                 en_kucuk_mesafe = mesafe
                 en_yakin_bolge = row["ad"]
                 
-        if en_kucuk_mesafe < 2.0:
+        if en_kucuk_mesafe < 3.0:  # Tıklama hassasiyet mesafesi
             st.session_state.secilen_yerlesim = en_yakin_bolge
 
     st.markdown("---")
@@ -194,6 +197,7 @@ else:
     if secilen_yerlesim_adi != "-- Lütfen Haritadan Tıklayın veya Buradan Seçin --":
         st.session_state.secilen_yerlesim = secilen_yerlesim_adi
 
+    # Bilgi kartı ya da uyarı gösterimi
     if st.session_state.secilen_yerlesim is None or st.session_state.secilen_yerlesim not in df_filtrelenmis["ad"].tolist():
         st.warning("👉 **Detay Bilgisi:** Detay raporunu incelemek için lütfen harita üzerindeki bir noktaya tıklayın veya yukarıdaki menüden bir bölge seçin.")
     else:
