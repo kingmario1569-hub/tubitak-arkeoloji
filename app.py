@@ -50,7 +50,7 @@ except Exception as e:
     st.error(f"Veri yüklenirken hata oluştu ('yerlesimler.csv' dosyasını kontrol edin): {e}")
     st.stop()
 
-# Session State Değişkenleri
+# Session State Durumları
 if "analiz_baslatildi" not in st.session_state:
     st.session_state.analiz_baslatildi = False
 
@@ -65,7 +65,7 @@ st.sidebar.header("⏳ DÖNEM SEÇİMİ")
 donem_listesi = df["donem"].unique()
 secilen_donem = st.sidebar.selectbox("Arkeolojik Dönem:", donem_listesi)
 
-# Kullanıcı sol menüden farklı bir dönem seçerse analizi ve seçimi sıfırla
+# Dönem değiştiğinde durumları sıfırla
 if st.session_state.aktif_donem != secilen_donem:
     st.session_state.aktif_donem = secilen_donem
     st.session_state.analiz_baslatildi = False
@@ -79,7 +79,7 @@ if st.sidebar.button("▶️ Modeli Çalıştır / Başlat"):
 st.sidebar.markdown("---")
 st.sidebar.subheader("📌 LEJANT")
 st.sidebar.markdown(
-    "⚫ **Bilinen (Kazılmış) Yerleşim** (Siyah Daire / Beyaz Nokta)<br>"
+    "⬛ **Bilinen (Kazılmış) Yerleşim** (Siyah Nokta)<br>"
     "🔴 **Yüksek Olasılık Tahmini (%70+)**<br>"
     "🟡 **Orta Olasılık Tahmini (%40–70)**",
     unsafe_allow_html=True
@@ -95,7 +95,6 @@ st.sidebar.info(
 
 df_filtrelenmis = df[df["donem"] == secilen_donem]
 
-# Eğer başlatılmadıysa boş ekran
 if not st.session_state.analiz_baslatildi:
     st.subheader("Harita Görünümü")
     st.info("👈 **Modeli Çalıştırmak İçin:** Sol menüden dönemi seçtikten sonra **'▶️ Modeli Çalıştır / Başlat'** butonuna basınız.")
@@ -124,46 +123,40 @@ else:
 
     for _, row in df_filtrelenmis.iterrows():
         if "Bilinen" in str(row["tip"]):
-            html_icon = f"""
+            # HTML DivIcon: Tıklamayı engellemeyen tek parçalı sade siyah nokta
+            html_icon = """
             <div style="
                 background-color: #000000; 
                 border: 2px solid #ffffff; 
-                width: 18px; 
-                height: 18px; 
+                width: 16px; 
+                height: 16px; 
                 border-radius: 50%; 
-                display: flex; 
-                align-items: center; 
-                justify-content: center;
-                box-shadow: 0 0 3px rgba(0,0,0,0.5);">
-                <div style="
-                    background-color: #ffffff; 
-                    width: 6px; 
-                    height: 6px; 
-                    border-radius: 50%;">
-                </div>
+                pointer-events: none;
+                box-shadow: 0 0 4px rgba(0,0,0,0.5);">
             </div>
             """
             folium.Marker(
                 location=[row["lat"], row["lng"]],
-                icon=folium.DivIcon(html=html_icon)
+                icon=folium.DivIcon(html=html_icon),
+                tooltip=row["ad"]
             ).add_to(m)
         else:
             renk = "#a83232" if "%8" in str(row["durum"]) or "%7" in str(row["durum"]) else "#b8860b"
             folium.CircleMarker(
                 location=[row["lat"], row["lng"]],
-                radius=11,
+                radius=10,
                 color="#ffffff",
                 weight=2,
                 fill=True,
                 fill_color=renk,
                 fill_opacity=0.9,
+                tooltip=row["ad"]
             ).add_to(m)
 
-    # Harita etkileşimi (tıklama verisini al)
     harita_cikti = st_folium(m, width=1200, height=480, returned_objects=["last_clicked"])
 
     # Harita Tıklama Algılama
-    if harita_cikti and "last_clicked" in harita_cikti and harita_cikti["last_clicked"] is not None:
+    if harita_cikti and harita_cikti.get("last_clicked") is not None:
         tik_lat = harita_cikti["last_clicked"]["lat"]
         tik_lng = harita_cikti["last_clicked"]["lng"]
         
@@ -176,7 +169,7 @@ else:
                 en_kucuk_mesafe = mesafe
                 en_yakin_bolge = row["ad"]
                 
-        if en_kucuk_mesafe < 3.0:  # Tıklama hassasiyet mesafesi
+        if en_kucuk_mesafe < 4.0:
             st.session_state.secilen_yerlesim = en_yakin_bolge
 
     st.markdown("---")
@@ -197,7 +190,6 @@ else:
     if secilen_yerlesim_adi != "-- Lütfen Haritadan Tıklayın veya Buradan Seçin --":
         st.session_state.secilen_yerlesim = secilen_yerlesim_adi
 
-    # Bilgi kartı ya da uyarı gösterimi
     if st.session_state.secilen_yerlesim is None or st.session_state.secilen_yerlesim not in df_filtrelenmis["ad"].tolist():
         st.warning("👉 **Detay Bilgisi:** Detay raporunu incelemek için lütfen harita üzerindeki bir noktaya tıklayın veya yukarıdaki menüden bir bölge seçin.")
     else:
