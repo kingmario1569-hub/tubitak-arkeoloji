@@ -4,7 +4,7 @@ import folium
 from streamlit_folium import st_folium
 import math
 
-st.set_page_config(page_title="Anadolu ve Balkanlar Arkeolojik Yerleşim Tahmin ve Analiz Sistemi", layout="wide")
+st.set_page_config(page_title="Anadolu and Balkanlar Arkeolojik Yerleşim Tahmin ve Analiz Sistemi", layout="wide")
 
 # Antik Parşömen Teması
 st.markdown("""
@@ -36,7 +36,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.title(" Anadolu ve Balkanlar Arkeolojik Yerleşim Yapay Zeka Tahmin Modeli")
+st.title("Anadolu ve Balkanlar Arkeolojik Yerleşim Yapay Zeka Tahmin Modeli")
 st.markdown("TAY Projesi ve Balkan Arkeoloji Veritabanı ile SRTM DEM coğrafi parametreleri kullanılarak Random Forest algoritmasıyla üretilen kıtalararası tahmin prototipi.")
 
 # Veriyi doğrudan CSV dosyasından okuma
@@ -65,7 +65,6 @@ st.sidebar.header("⏳ DÖNEM SEÇİMİ")
 donem_listesi = df["donem"].unique()
 secilen_donem = st.sidebar.selectbox("Arkeolojik Dönem:", donem_listesi)
 
-# Eğer kullanıcı dönemi değiştirirse haritayı ve seçimi sıfırla (Başlat butonuna basılana kadar bekle)
 if st.session_state.onceki_donem != secilen_donem:
     st.session_state.analiz_baslatildi = False
     st.session_state.secilen_yerlesim = None
@@ -79,7 +78,7 @@ if st.sidebar.button("▶️ Modeli Çalıştır / Başlat"):
 st.sidebar.markdown("---")
 st.sidebar.subheader("📌 LEJANT")
 st.sidebar.markdown(
-    "⬛ **Bilinen (Kazılmış) Yerleşim**<br>"
+    "⬛ **Bilinen (Kazılmış) Yerleşim** (Siyah/Beyaz Nokta)<br>"
     "🔴 **Yüksek Olasılık Tahmini (%70+)**<br>"
     "🟡 **Orta Olasılık Tahmini (%40–70)**",
     unsafe_allow_html=True
@@ -95,7 +94,6 @@ st.sidebar.info(
 
 df_filtrelenmis = df[df["donem"] == secilen_donem]
 
-# Eğer 'Başlat' butonuna basılmadıysa yönlendirme ekranı göster
 if not st.session_state.analiz_baslatildi:
     st.subheader("Harita Görünümü")
     st.info("👈 **Modeli Çalıştırmak İçin:** Sol menüden dönemi seçtikten sonra **'▶️ Modeli Çalıştır / Başlat'** butonuna basınız.")
@@ -124,9 +122,29 @@ else:
 
     for _, row in df_filtrelenmis.iterrows():
         if "Bilinen" in str(row["tip"]):
+            # Bilinen yerleşimler: Siyah daire içinde beyaz nokta görünümü için HTML Marker / DivIcon kullanıyoruz
+            html_icon = f"""
+            <div style="
+                background-color: #000000; 
+                border: 2px solid #ffffff; 
+                width: 18px; 
+                height: 18px; 
+                border-radius: 50%; 
+                display: flex; 
+                align-items: center; 
+                justify-content: center;
+                box-shadow: 0 0 3px rgba(0,0,0,0.5);">
+                <div style="
+                    background-color: #ffffff; 
+                    width: 6px; 
+                    height: 6px; 
+                    border-radius: 50%;">
+                </div>
+            </div>
+            """
             folium.Marker(
                 location=[row["lat"], row["lng"]],
-                icon=folium.Icon(color="black", icon="bookmark", prefix="fa")
+                icon=folium.DivIcon(html=html_icon)
             ).add_to(m)
         else:
             renk = "#a83232" if "%8" in str(row["durum"]) or "%7" in str(row["durum"]) else "#b8860b"
@@ -156,7 +174,9 @@ else:
                 en_kucuk_mesafe = mesafe
                 en_yakin_bolge = row["ad"]
                 
-        st.session_state.secilen_yerlesim = en_yakin_bolge
+        # Tıklanan noktaya en yakın yerleşimi seç (Bilinen veya aday fark etmez)
+        if en_kucuk_mesafe < 2.0:  # Genişletilmiş tıklama toleransı
+            st.session_state.secilen_yerlesim = en_yakin_bolge
 
     st.markdown("---")
     st.subheader("📌 Seçilen Bölge / Aday Alan Detay Raporu")
@@ -176,11 +196,9 @@ else:
     if secilen_yerlesim_adi != "-- Lütfen Haritadan Tıklayın veya Buradan Seçin --":
         st.session_state.secilen_yerlesim = secilen_yerlesim_adi
 
-    # Henüz bölge seçilmediyse bilgi uyarısı göster
     if st.session_state.secilen_yerlesim is None or st.session_state.secilen_yerlesim not in df_filtrelenmis["ad"].tolist():
         st.warning("👉 **Detay Bilgisi:** Detay raporunu incelemek için lütfen harita üzerindeki bir noktaya tıklayın veya yukarıdaki menüden bir bölge seçin.")
     else:
-        # Bölge seçildiyse detay kartını göster
         aktif_satir = df_filtrelenmis[df_filtrelenmis["ad"] == st.session_state.secilen_yerlesim].iloc[0]
 
         st.markdown(
