@@ -57,15 +57,24 @@ if "analiz_baslatildi" not in st.session_state:
 if "secilen_yerlesim" not in st.session_state:
     st.session_state.secilen_yerlesim = None
 
+if "onceki_donem" not in st.session_state:
+    st.session_state.onceki_donem = None
+
 # Sol Panel
 st.sidebar.header("⏳ DÖNEM SEÇİMİ")
 donem_listesi = df["donem"].unique()
 secilen_donem = st.sidebar.selectbox("Arkeolojik Dönem:", donem_listesi)
 
+# Eğer kullanıcı dönemi değiştirirse haritayı ve seçimi sıfırla (Başlat butonuna basılana kadar bekle)
+if st.session_state.onceki_donem != secilen_donem:
+    st.session_state.analiz_baslatildi = False
+    st.session_state.secilen_yerlesim = None
+    st.session_state.onceki_donem = secilen_donem
+
 st.sidebar.markdown("<br>", unsafe_allow_html=True)
 if st.sidebar.button("▶️ Modeli Çalıştır / Başlat"):
     st.session_state.analiz_baslatildi = True
-    st.session_state.secilen_yerlesim = None  # Yeni dönem seçildiğinde seçimi sıfırla
+    st.session_state.secilen_yerlesim = None
 
 st.sidebar.markdown("---")
 st.sidebar.subheader("📌 LEJANT")
@@ -86,7 +95,7 @@ st.sidebar.info(
 
 df_filtrelenmis = df[df["donem"] == secilen_donem]
 
-# Eğer 'Başlat' butonuna basılmadıysa yönlendirme ekranı
+# Eğer 'Başlat' butonuna basılmadıysa yönlendirme ekranı göster
 if not st.session_state.analiz_baslatildi:
     st.subheader("Harita Görünümü")
     st.info("👈 **Modeli Çalıştırmak İçin:** Sol menüden dönemi seçtikten sonra **'▶️ Modeli Çalıştır / Başlat'** butonuna basınız.")
@@ -152,7 +161,6 @@ else:
     st.markdown("---")
     st.subheader("📌 Seçilen Bölge / Aday Alan Detay Raporu")
 
-    # Kullanıcı Manuel Açılır Menüden Seçerse
     secenekler = ["-- Lütfen Haritadan Tıklayın veya Buradan Seçin --"] + df_filtrelenmis["ad"].tolist()
     
     varsayilan_index = 0
@@ -168,11 +176,11 @@ else:
     if secilen_yerlesim_adi != "-- Lütfen Haritadan Tıklayın veya Buradan Seçin --":
         st.session_state.secilen_yerlesim = secilen_yerlesim_adi
 
-    # Eğer Henüz Hiç Bölge Seçilmediyse Bildirim Göster
+    # Henüz bölge seçilmediyse bilgi uyarısı göster
     if st.session_state.secilen_yerlesim is None or st.session_state.secilen_yerlesim not in df_filtrelenmis["ad"].tolist():
         st.warning("👉 **Detay Bilgisi:** Detay raporunu incelemek için lütfen harita üzerindeki bir noktaya tıklayın veya yukarıdaki menüden bir bölge seçin.")
     else:
-        # Bölge Seçildiyse Kartı Göster
+        # Bölge seçildiyse detay kartını göster
         aktif_satir = df_filtrelenmis[df_filtrelenmis["ad"] == st.session_state.secilen_yerlesim].iloc[0]
 
         st.markdown(
