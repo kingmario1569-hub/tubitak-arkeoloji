@@ -1,8 +1,23 @@
-donem,ad,lat,lng,tip,yukseklik,su_mesafesi,egim,faktor
-Neolitik Dönem (MÖ 10.000–6.000),Göbekli Tepe (Şanlıurfa),37.22,38.79,Bilinen Yerleşim,760 m,1.2 km,Düşük (%4),Tarım & Su
-Neolitik Dönem (MÖ 10.000–6.000),Çatalhöyük (Konya),37.66,32.82,Bilinen Yerleşim,1015 m,0.5 km,Çok Düşük (%2),Alüvyal Toprak
-Neolitik Dönem (MÖ 10.000–6.000),Malatya Çevresi Tahmin Alanı,38.35,38.32,Yüksek Olasılık (%89),910 m,0.9 km,Düşük (%5),Su Havzası
-Kalkolitik Çağ (MÖ 6.000–3.000),Canhasan (Karaman),37.87,32.48,Bilinen Yerleşim,1000 m,1.5 km,Orta (%7),Maden & Tarım
-Kalkolitik Çağ (MÖ 6.000–3.000),Bursa/İznik Çevresi Tahmin,40.18,29.06,Yüksek Olasılık (%76),85 m,0.4 km,Düşük (%3),Göl Kenarı
-Tunç Çağı (MÖ 3.000–1.200),Hattuşa / Boğazköy (Çorum),40.02,34.63,Bilinen Yerleşim,1050 m,2.2 km,Yüksek (%15),Savunma & Strateji
-Tunç Çağı (MÖ 3.000–1.200),Kültepe / Kaniş (Kayseri),38.73,35.48,Bilinen Yerleşim,1100 m,1.8 km,Orta (%8),Ticaret Yolu
+ad,donem,lat,lng,tip,yukseklik,su_mesafesi,egim,toprak,faktor,durum
+Göbekli Tepe (Bilinen),Neolitik Çağ,37.2222,38.9222,Bilinen Yerleşim,760 m,2.1 km,Orta (%8),Yüksek verimlilik,Stratejik Tepe / Dinsel Merkez,Kanıtlanmış Arkeolojik Sit
+Çatalhöyük (Bilinen),Neolitik Çağ,37.6650,32.8300,Bilinen Yerleşim,1010 m,0.5 km,Düz (%2),Çok Yüksek verimlilik,Alüvyal Ova / Tarım,Kanıtlanmış Arkeolojik Sit
+Franchthi Mağarası (Bilinen),Neolitik Çağ,37.4100,23.1500,Bilinen Yerleşim,15 m,0.1 km,Dik (%25),Orta verimlilik,Kıyı / Denizcilik ve Mağara Yerleşimi,Kanıtlanmış Arkeolojik Sit
+Karanovo (Bilinen),Neolitik Çağ,42.4167,25.9000,Bilinen Yerleşim,180 m,0.4 km,Düz (%3),Çok Yüksek verimlilik,Trakya Ovası Tarım Havzası,Kanıtlanmış Arkeolojik Sit
+Aday Bölge N-1 (Konya Ovası Doğusu),Neolitik Çağ,37.8500,33.4000,Yüksek Olasılık,995 m,0.8 km,Düz (%3),Yüksek verimlilik,Eski Bataklık Kenarı,%88 Olasılık
+Aday Bölge N-2 (Hasankeyf Çevresi),Neolitik Çağ,37.7160,41.4110,Yüksek Olasılık,510 m,0.3 km,Yüksek (%18),Orta verimlilik,Nehir Vadisi / Mağara Kuşağı,%82 Olasılık
+Aday Bölge N-3 (Tuz Gölü Havzası),Neolitik Çağ,38.8000,33.5000,Orta Olasılık,920 m,3.5 km,Düz (%1),Düşük verimlilik,Tuzla ve Göç Yolu,%65 Olasılık
+Balkan Aday Bölge N-1 (Meriç Vadisi),Neolitik Çağ,41.6800,26.5600,Yüksek Olasılık,45 m,0.5 km,Düz (%2),Çok Yüksek verimlilik,Nehir Geçişi ve Göç Yolu,%86 Olasılık
+
+Hacılar (Bilinen),Kalkolitik Çağ,37.6333,30.2167,Bilinen Yerleşim,940 m,1.2 km,Hafif (%5),Yüksek verimlilik,Göller Yöresi Eşik,Kanıtlanmış Arkeolojik Sit
+Vinča (Bilinen),Kalkolitik Çağ,44.7667,20.6167,Bilinen Yerleşim,70 m,0.3 km,Hafif (%4),Çok Yüksek verimlilik,Tunç/Bakır Çağı Kültür Merkezi,Kanıtlanmış Arkeolojik Sit
+Aday Bölge K-1 (Sakarya Vadisi),Kalkolitik Çağ,39.9500,31.1000,Yüksek Olasılık,780 m,0.9 km,Hafif (%4),Yüksek verimlilik,Nehir Terası Tarım Alanı,%84 Olasılık
+Aday Bölge K-2 (Malatya Ovası),Kalkolitik Çağ,38.3500,38.3000,Yüksek Olasılık,890 m,1.5 km,Orta (%6),Çok Yüksek verimlilik,Metal Yataklarına Yakınlık,%79 Olasılık
+Aday Bölge K-3 (Menderes Havzası),Kalkolitik Çağ,37.9000,28.5000,Orta Olasılık,140 m,2.0 km,Düz (%3),Yüksek verimlilik,Vadi Tabanı Yerleşimi,%58 Olasılık
+Balkan Aday Bölge K-1 (Morava Vadisi),Kalkolitik Çağ,43.3200,21.8900,Yüksek Olasılık,190 m,0.6 km,Hafif (%4),Yüksek verimlilik,Kritik Vadi Kavşağı,%81 Olasılık
+
+Truva (Bilinen),Tunç Çağı,39.9575,26.2386,Bilinen Yerleşim,31 m,1.0 km,Hafif (%4),Yüksek verimlilik,Deniz Ticaret Yolu Hakimiyeti,Kanıtlanmış Arkeolojik Sit
+Kültepe / Kaniş (Bilinen),Tunç Çağı,38.8500,35.6167,Bilinen Yerleşim,1080 m,1.8 km,Düz (%2),Yüksek verimlilik,Kritik Kara Ticaret Kavşağı,Kanıtlanmış Arkeolojik Sit
+Aday Bölge T-1 (Haymana Eşiği),Tunç Çağı,39.1000,32.8000,Orta Olasılık,1150 m,2.8 km,Orta (%9),Orta verimlilik,Yaylak / Otlak Kontrolü,%61 Olasılık
+Aday Bölge T-2 (Kızılırmak Kavis Bölgesi),Tunç Çağı,39.3000,37.5000,Yüksek Olasılık,1310 m,1.4 km,Yüksek (%15),Orta verimlilik,Stratejik Yüksekliğe ve Ticaret Yoluna Yakınlık,%73 Olasılık
+Aday Bölge T-3 (Göksu Geçidi),Tunç Çağı,36.8000,33.8000,Yüksek Olasılık,850 m,0.6 km,Dik (%22),Düşük verimlilik,Dağ Geçidi / Güvenlik Noktası,%76 Olasılık
+Balkan Aday Bölge T-1 (Vardar Koridoru),Tunç Çağı,41.1200,21.3300,Yüksek Olasılık,210 m,0.4 km,Orta (%7),Yüksek verimlilik,Ege-Balkan Ticaret Koridoru,%85 Olasılık
