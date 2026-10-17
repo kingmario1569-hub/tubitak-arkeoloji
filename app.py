@@ -4,7 +4,7 @@ import folium
 from streamlit_folium import st_folium
 import math
 
-st.set_page_config(page_title="Anadolu Arkeolojik Yerleşim Tahmin ve Analiz Sistemi", layout="wide")
+st.set_page_config(page_title="Anadolu ve Balkanlar Arkeolojik Yerleşim Tahmin ve Analiz Sistemi", layout="wide")
 
 # Antik Parşömen Teması
 st.markdown("""
@@ -19,7 +19,6 @@ st.markdown("""
         color: #3b2b1a;
         font-family: 'Georgia', serif;
     }
-    /* Buton Tasarımı */
     div.stButton > button:first-child {
         background-color: #3b2b1a;
         color: #f4ebd0;
@@ -37,35 +36,21 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.title("🏛️ Anadolu Neolitik, Kalkolitik ve Tunç Çağı Yapay Zeka Tahmin Modeli")
-st.markdown("TAY veritabanı ve SRTM DEM coğrafi parametreleri kullanılarak Random Forest algoritmasıyla üretilen coğrafi tahmin prototipi.")
+st.title("🏛️ Anadolu ve Balkanlar Arkeolojik Yerleşim Yapay Zeka Tahmin Modeli")
+st.markdown("TAY Projesi ve Balkan Arkeoloji Veritabanı ile SRTM DEM coğrafi parametreleri kullanılarak Random Forest algoritmasıyla üretilen kıtalararası tahmin prototipi.")
 
-# Kapsamlı Arkeolojik Veri Seti
-data = [
-    # Neolitik Çağ
-    {"ad": "Göbekli Tepe (Bilinen)", "donem": "Neolitik Çağ", "lat": 37.2222, "lng": 38.9222, "tip": "Bilinen Yerleşim", "yukseklik": "760 m", "su_mesafesi": "2.1 km", "egim": "Orta (%8)", "toprak": "Yüksek verimlilik", "faktor": "Stratejik Tepe / Dinsel Merkez", "durum": "Kanıtlanmış Arkeolojik Sit"},
-    {"ad": "Çatalhöyük (Bilinen)", "donem": "Neolitik Çağ", "lat": 37.6650, "lng": 32.8300, "tip": "Bilinen Yerleşim", "yukseklik": "1010 m", "su_mesafesi": "0.5 km", "egim": "Düz (%2)", "toprak": "Çok Yüksek verimlilik", "faktor": "Alüvyal Ova / Tarım", "durum": "Kanıtlanmış Arkeolojik Sit"},
-    {"ad": "Aday Bölge N-1 (Konya Ovası Doğusu)", "donem": "Neolitik Çağ", "lat": 37.8500, "lng": 33.4000, "tip": "Yüksek Olasılık", "yukseklik": "995 m", "su_mesafesi": "0.8 km", "egim": "Düz (%3)", "toprak": "Yüksek verimlilik", "faktor": "Eski Bataklık Kenarı", "durum": "%88 Olasılık"},
-    {"ad": "Aday Bölge N-2 (Hasankeyf Çevresi)", "donem": "Neolitik Çağ", "lat": 37.7160, "lng": 41.4110, "tip": "Yüksek Olasılık", "yukseklik": "510 m", "su_mesafesi": "0.3 km", "egim": "Yüksek (%18)", "toprak": "Orta verimlilik", "faktor": "Nehir Vadisi / Mağara Kuşağı", "durum": "%82 Olasılık"},
-    {"ad": "Aday Bölge N-3 (Tuz Gölü Havzası)", "donem": "Neolitik Çağ", "lat": 38.8000, "lng": 33.5000, "tip": "Orta Olasılık", "yukseklik": "920 m", "su_mesafesi": "3.5 km", "egim": "Düz (%1)", "toprak": "Düşük verimlilik", "faktor": "Tuzla ve Göç Yolu", "durum": "%65 Olasılık"},
+# Veriyi doğrudan CSV dosyasından okuma (Harici Veri Tabanı Mimarisi)
+@st.cache_data
+def veri_yukle():
+    return pd.read_csv("yerlesimler.csv")
 
-    # Kalkolitik Çağ
-    {"ad": "Hacılar (Bilinen)", "donem": "Kalkolitik Çağ", "lat": 37.6333, "lng": 30.2167, "tip": "Bilinen Yerleşim", "yukseklik": "940 m", "su_mesafesi": "1.2 km", "egim": "Hafif (%5)", "toprak": "Yüksek verimlilik", "faktor": "Göller Yöresi Eşik", "durum": "Kanıtlanmış Arkeolojik Sit"},
-    {"ad": "Aday Bölge K-1 (Sakarya Vadisi)", "donem": "Kalkolitik Çağ", "lat": 39.9500, "lng": 31.1000, "tip": "Yüksek Olasılık", "yukseklik": "780 m", "su_mesafesi": "0.9 km", "egim": "Hafif (%4)", "toprak": "Yüksek verimlilik", "faktor": "Nehir Terası Tarım Alanı", "durum": "%84 Olasılık"},
-    {"ad": "Aday Bölge K-2 (Malatya Ovası)", "donem": "Kalkolitik Çağ", "lat": 38.3500, "lng": 38.3000, "tip": "Yüksek Olasılık", "yukseklik": "890 m", "su_mesafesi": "1.5 km", "egim": "Orta (%6)", "toprak": "Çok Yüksek verimlilik", "faktor": "Metal Yataklarına Yakınlık", "durum": "%79 Olasılık"},
-    {"ad": "Aday Bölge K-3 (Menderes Havzası)", "donem": "Kalkolitik Çağ", "lat": 37.9000, "lng": 28.5000, "tip": "Orta Olasılık", "yukseklik": "140 m", "su_mesafesi": "2.0 km", "egim": "Düz (%3)", "toprak": "Yüksek verimlilik", "faktor": "Vadi Tabanı Yerleşimi", "durum": "%58 Olasılık"},
+try:
+    df = veri_yukle()
+except Exception as e:
+    st.error(f"Veri yüklenirken hata oluştu ('yerlesimler.csv' dosyasını kontrol edin): {e}")
+    st.stop()
 
-    # Tunç Çağı
-    {"ad": "Truva (Bilinen)", "donem": "Tunç Çağı", "lat": 39.9575, "lng": 26.2386, "tip": "Bilinen Yerleşim", "yukseklik": "31 m", "su_mesafesi": "1.0 km", "egim": "Hafif (%4)", "toprak": "Yüksek verimlilik", "faktor": "Deniz Ticaret Yolu Hakimiyeti", "durum": "Kanıtlanmış Arkeolojik Sit"},
-    {"ad": "Kültepe / Kaniş (Bilinen)", "donem": "Tunç Çağı", "lat": 38.8500, "lng": 35.6167, "tip": "Bilinen Yerleşim", "yukseklik": "1080 m", "su_mesafesi": "1.8 km", "egim": "Düz (%2)", "toprak": "Yüksek verimlilik", "faktor": "Kritik Kara Ticaret Kavşağı", "durum": "Kanıtlanmış Arkeolojik Sit"},
-    {"ad": "Aday Bölge T-1 (Haymana Eşiği)", "donem": "Tunç Çağı", "lat": 39.1000, "lng": 32.8000, "tip": "Orta Olasılık", "yukseklik": "1150 m", "su_mesafesi": "2.8 km", "egim": "Orta (%9)", "toprak": "Orta verimlilik", "faktor": "Yaylak / Otlak Kontrolü", "durum": "%61 Olasılık"},
-    {"ad": "Aday Bölge T-2 (Kızılırmak Kavis Bölgesi)", "donem": "Tunç Çağı", "lat": 39.3000, "lng": 37.5000, "tip": "Yüksek Olasılık", "yukseklik": "1310 m", "su_mesafesi": "1.4 km", "egim": "Yüksek (%15)", "toprak": "Orta verimlilik", "faktor": "Stratejik Yüksekliğe ve Ticaret Yoluna Yakınlık", "durum": "%73 Olasılık"},
-    {"ad": "Aday Bölge T-3 (Göksu Geçidi)", "donem": "Tunç Çağı", "lat": 36.8000, "lng": 33.8000, "tip": "Yüksek Olasılık", "yukseklik": "850 m", "su_mesafesi": "0.6 km", "egim": "Dik (%22)", "toprak": "Düşük verimlilik", "faktor": "Dağ Geçidi / Güvenlik Noktası", "durum": "%76 Olasılık"}
-]
-
-df = pd.DataFrame(data)
-
-# Session State ile Çalıştırma Durumunu Takip Etme
+# Session State ile Çalıştırma Durumu
 if "analiz_baslatildi" not in st.session_state:
     st.session_state.analiz_baslatildi = False
 
@@ -90,22 +75,21 @@ st.sidebar.markdown(
 st.sidebar.markdown("---")
 st.sidebar.subheader("📚 Proje Altyapısı")
 st.sidebar.info(
-    "• **Veri Tabanı:** TAY Projesi\n"
+    "• **Veri Tabanı:** TAY & Balkan Verileri\n"
     "• **Coğrafi Veriler:** SRTM DEM\n"
     "• **Model:** Random Forest (ML)"
 )
 
 df_filtrelenmis = df[df["donem"] == secilen_donem]
 
-# Eğer 'Başlat' butonuna basılmadıysa sadece yönlendirme mesajı ve boş harita göster
+# Eğer 'Başlat' butonuna basılmadıysa boş harita göster
 if not st.session_state.analiz_baslatildi:
     st.subheader("Harita Görünümü")
     st.info("👈 **Modeli Çalıştırmak İçin:** Sol menüden dönemi seçtikten sonra **'▶️ Modeli Çalıştır / Başlat'** butonuna basınız.")
     
-    # Boş / Başlangıç Haritası
     m_bos = folium.Map(
-        location=[39.0, 35.0], 
-        zoom_start=6, 
+        location=[41.0, 26.0], 
+        zoom_start=5, 
         tiles="OpenStreetMap",
         zoom_control=True,
         scroll_wheel_zoom=False,
@@ -114,12 +98,12 @@ if not st.session_state.analiz_baslatildi:
     st_folium(m_bos, width=1200, height=480, returned_objects=[])
 
 else:
-    # Başlat butonuna basıldıysa noktaları ve detay panelini göster
-    st.subheader(f"Harita Analizi ve Model Tahminleri: {secilen_donem}")
+    st.subheader(f"Harita Analizi ve Model Tahminleri (Anadolu & Balkanlar): {secilen_donem}")
     
+    # Harita merkezi hem Anadolu'yu hem Balkanlar'ı kapsayacak şekilde ayarlandı
     m = folium.Map(
-        location=[39.0, 35.0], 
-        zoom_start=6, 
+        location=[41.0, 26.0], 
+        zoom_start=5, 
         tiles="OpenStreetMap",
         zoom_control=True,
         scroll_wheel_zoom=False,
@@ -127,13 +111,13 @@ else:
     )
 
     for _, row in df_filtrelenmis.iterrows():
-        if "Bilinen" in row["tip"]:
+        if "Bilinen" in str(row["tip"]):
             folium.Marker(
                 location=[row["lat"], row["lng"]],
                 icon=folium.Icon(color="black", icon="bookmark", prefix="fa")
             ).add_to(m)
         else:
-            renk = "#a83232" if "%8" in row["durum"] or "%7" in row["durum"] else "#b8860b"
+            renk = "#a83232" if "%8" in str(row["durum"]) or "%7" in str(row["durum"]) or "%8" in str(row["durum"]) else "#b8860b"
             folium.CircleMarker(
                 location=[row["lat"], row["lng"]],
                 radius=11,
@@ -146,7 +130,6 @@ else:
 
     harita_cikti = st_folium(m, width=1200, height=480, returned_objects=["last_clicked"])
 
-    # Tıklama veya Varsayılan Seçim
     secilen_yerlesim_adi = df_filtrelenmis.iloc[0]["ad"]
 
     if harita_cikti and "last_clicked" in harita_cikti and harita_cikti["last_clicked"] is not None:
@@ -175,7 +158,6 @@ else:
 
     aktif_satir = df_filtrelenmis[df_filtrelenmis["ad"] == secilen_yerlesim_adi].iloc[0]
 
-    # Detay Kutusu
     st.markdown(
         f"""
         <div style="background-color: #ece2c3; border: 2px solid #b5a47c; padding: 22px; border-radius: 8px; margin-top: 10px;">
@@ -187,8 +169,8 @@ else:
     with col_baslik:
         st.markdown(f"### {aktif_satir['ad']}")
     with col_rozets:
-        rozet_bg = "#2b2b2b" if "Bilinen" in aktif_satir['tip'] else "#d9c39a"
-        rozet_renk = "#ffffff" if "Bilinen" in aktif_satir['tip'] else "#7a3e1e"
+        rozet_bg = "#2b2b2b" if "Bilinen" in str(aktif_satir['tip']) else "#d9c39a"
+        rozet_renk = "#ffffff" if "Bilinen" in str(aktif_satir['tip']) else "#7a3e1e"
         st.markdown(f"<div style='background-color: {rozet_bg}; border: 1px solid #b5a47c; padding: 8px 12px; border-radius: 6px; text-align: center; font-weight: bold; color: {rozet_renk}; font-size: 13px;'>{aktif_satir['durum']}</div>", unsafe_allow_html=True)
 
     st.markdown("<hr style='border: 0; border-top: 1px solid #b5a47c; margin: 10px 0;'>", unsafe_allow_html=True)
