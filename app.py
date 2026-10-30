@@ -1,240 +1,166 @@
-import streamlit as st
+"""Sonuç gösterim uygulaması (Streamlit).
+
+Bu uygulama HİÇBİR hesaplama yapmaz ve HİÇBİR sayıyı kendi içinde barındırmaz.
+Ekrandaki her değer, 01_degisken_hesapla.py ve 02_model.py'nin sonuclar/ klasörüne
+yazdığı dosyalardan okunur. Bir dosya yoksa ilgili bölüm "henüz üretilmedi" der.
+"""
+import json
+from pathlib import Path
+
 import pandas as pd
+import streamlit as st
 import folium
 from streamlit_folium import st_folium
-import math
 
-st.set_page_config(page_title="Anadolu ve Balkanlar Arkeolojik Yerleşim Tahmin ve Analiz Sistemi", layout="wide")
+SONUC = Path(__file__).resolve().parent / "sonuclar"
+GRAFIK = SONUC / "grafikler"
+DONEMLER = ["Neolitik", "Kalkolitik", "Tunc"]
+DONEM_AD = {"Neolitik": "Neolitik", "Kalkolitik": "Kalkolitik", "Tunc": "Tunç Çağı"}
+RENK = {"Neolitik": "#3a7d44", "Kalkolitik": "#c07a2c", "Tunc": "#6b4f9e"}
 
-# Antik Parşömen Teması
-st.markdown("""
-    <style>
-    .main {
-        background-color: #f4ebd0;
-    }
-    .stApp {
-        background-color: #f4ebd0;
-    }
-    h1, h2, h3 {
-        color: #3b2b1a;
-        font-family: 'Georgia', serif;
-    }
-    div.stButton > button:first-child {
-        background-color: #3b2b1a;
-        color: #f4ebd0;
-        font-weight: bold;
-        border-radius: 6px;
-        border: 1px solid #b5a47c;
-        width: 100%;
-        padding: 10px;
-        font-size: 16px;
-    }
-    div.stButton > button:first-child:hover {
-        background-color: #5a432d;
-        color: #ffffff;
-    }
-    </style>
-""", unsafe_allow_html=True)
+st.set_page_config(page_title="Anadolu'da Üç Çağın Yerleşim Seçimi", layout="wide")
 
-st.title("Anadolu ve Balkanlar Arkeolojik Yerleşim Yapay Zeka Tahmin Modeli")
-st.markdown("TAY Projesi ve Balkan Arkeoloji Veritabanı ile SRTM DEM coğrafi parametreleri kullanılarak Random Forest algoritmasıyla üretilen kıtalararası tahmin prototipi.")
 
-# Veriyi doğrudan CSV dosyasından okuma
-@st.cache_data
-def veri_yukle():
-    return pd.read_csv("yerlesimler.csv")
+def oku_csv(ad):
+    yol = SONUC / ad
+    return pd.read_csv(yol) if yol.exists() else None
 
-try:
-    df = veri_yukle()
-except Exception as e:
-    st.error(f"Veri yüklenirken hata oluştu ('yerlesimler.csv' dosyasını kontrol edin): {e}")
-    st.stop()
 
-# Session State Durumları
-if "analiz_baslatildi" not in st.session_state:
-    st.session_state.analiz_baslatildi = False
+def oku_json(ad):
+    yol = SONUC / ad
+    return json.loads(yol.read_text(encoding="utf-8")) if yol.exists() else None
 
-if "secilen_yerlesim" not in st.session_state:
-    st.session_state.secilen_yerlesim = None
 
-if "aktif_donem" not in st.session_state:
-    st.session_state.aktif_donem = None
-
-# Sol Panel
-st.sidebar.header("⏳ DÖNEM SEÇİMİ")
-donem_listesi = df["donem"].unique()
-secilen_donem = st.sidebar.selectbox("Arkeolojik Dönem:", donem_listesi)
-
-if st.session_state.aktif_donem != secilen_donem:
-    st.session_state.aktif_donem = secilen_donem
-    st.session_state.analiz_baslatildi = False
-    st.session_state.secilen_yerlesim = None
-
-st.sidebar.markdown("<br>", unsafe_allow_html=True)
-if st.sidebar.button("▶️ Modeli Çalıştır / Başlat"):
-    st.session_state.analiz_baslatildi = True
-    st.session_state.secilen_yerlesim = None
-
-st.sidebar.markdown("---")
-st.sidebar.subheader("📌 LEJANT")
-st.sidebar.markdown(
-    "⚫ **Bilinen (Kazılmış) Yerleşim** (Siyah Daire / Beyaz Merkez)<br>"
-    "🔴 **Yüksek Olasılık Tahmini (%70+)**<br>"
-    "🟡 **Orta Olasılık Tahmini (%40–70)**",
-    unsafe_allow_html=True
-)
-
-st.sidebar.markdown("---")
-st.sidebar.subheader("📚 Proje Altyapısı")
-st.sidebar.info(
-    "• **Veri Tabanı:** TAY & Balkan Verileri\n"
-    "• **Coğrafi Veriler:** SRTM DEM\n"
-    "• **Model:** Random Forest (ML)"
-)
-
-df_filtrelenmis = df[df["donem"] == secilen_donem]
-
-if not st.session_state.analiz_baslatildi:
-    st.subheader("Harita Görünümü")
-    st.info("👈 **Modeli Çalıştırmak İçin:** Sol menüden dönemi seçtikten sonra **'▶️ Modeli Çalıştır / Başlat'** butonuna basınız.")
-    
-    m_bos = folium.Map(
-        location=[41.0, 26.0], 
-        zoom_start=5, 
-        tiles="OpenStreetMap",
-        zoom_control=True,
-        scroll_wheel_zoom=False,
-        dragging=True
-    )
-    st_folium(m_bos, width=1200, height=480, returned_objects=[])
-
-else:
-    st.subheader(f"Harita Analizi ve Model Tahminleri (Anadolu & Balkanlar): {secilen_donem}")
-    
-    m = folium.Map(
-        location=[41.0, 26.0], 
-        zoom_start=5, 
-        tiles="OpenStreetMap",
-        zoom_control=True,
-        scroll_wheel_zoom=False,
-        dragging=True
-    )
-
-    for _, row in df_filtrelenmis.iterrows():
-        if "Bilinen" in str(row["tip"]):
-            # 1. Dış Siyah Katman (Büyük Çember)
-            folium.CircleMarker(
-                location=[row["lat"], row["lng"]],
-                radius=10,
-                color="#ffffff",
-                weight=2,
-                fill=True,
-                fill_color="#000000",
-                fill_opacity=1.0,
-                tooltip=row["ad"]
-            ).add_to(m)
-            
-            # 2. İç Beyaz Nokta (Küçük Merkez Çemberi - aynı koordinatta)
-            folium.CircleMarker(
-                location=[row["lat"], row["lng"]],
-                radius=3.5,
-                color="#ffffff",
-                weight=0,
-                fill=True,
-                fill_color="#ffffff",
-                fill_opacity=1.0,
-                tooltip=row["ad"]
-            ).add_to(m)
-        else:
-            renk = "#a83232" if "%8" in str(row["durum"]) or "%7" in str(row["durum"]) else "#b8860b"
-            folium.CircleMarker(
-                location=[row["lat"], row["lng"]],
-                radius=10,
-                color="#ffffff",
-                weight=2,
-                fill=True,
-                fill_color=renk,
-                fill_opacity=0.9,
-                tooltip=row["ad"]
-            ).add_to(m)
-
-    harita_cikti = st_folium(m, width=1200, height=480, returned_objects=["last_clicked"])
-
-    # Harita Tıklama Algılama
-    if harita_cikti and harita_cikti.get("last_clicked") is not None:
-        tik_lat = harita_cikti["last_clicked"]["lat"]
-        tik_lng = harita_cikti["last_clicked"]["lng"]
-        
-        en_kucuk_mesafe = float("inf")
-        en_yakin_bolge = None
-        
-        for _, row in df_filtrelenmis.iterrows():
-            mesafe = math.sqrt((row["lat"] - tik_lat)**2 + (row["lng"] - tik_lng)**2)
-            if mesafe < en_kucuk_mesafe:
-                en_kucuk_mesafe = mesafe
-                en_yakin_bolge = row["ad"]
-                
-        if en_kucuk_mesafe < 4.0:
-            st.session_state.secilen_yerlesim = en_yakin_bolge
-
-    st.markdown("---")
-    st.subheader("📌 Seçilen Bölge / Aday Alan Detay Raporu")
-
-    secenekler = ["-- Lütfen Haritadan Tıklayın veya Buradan Seçin --"] + df_filtrelenmis["ad"].tolist()
-    
-    varsayilan_index = 0
-    if st.session_state.secilen_yerlesim in df_filtrelenmis["ad"].tolist():
-        varsayilan_index = secenekler.index(st.session_state.secilen_yerlesim)
-
-    secilen_yerlesim_adi = st.selectbox(
-        "Detayını incelemek istediğiniz bölgeyi seçin:",
-        secenekler,
-        index=varsayilan_index
-    )
-
-    if secilen_yerlesim_adi != "-- Lütfen Haritadan Tıklayın veya Buradan Seçin --":
-        st.session_state.secilen_yerlesim = secilen_yerlesim_adi
-
-    if st.session_state.secilen_yerlesim is None or st.session_state.secilen_yerlesim not in df_filtrelenmis["ad"].tolist():
-        st.warning("👉 **Detay Bilgisi:** Detay raporunu incelemek için lütfen harita üzerindeki bir noktaya tıklayın veya yukarıdaki menüden bir bölge seçin.")
+def grafik(ad, aciklama=None):
+    yol = GRAFIK / ad
+    if yol.exists():
+        st.image(str(yol), use_container_width=True)
+        if aciklama:
+            st.caption(aciklama)
     else:
-        aktif_satir = df_filtrelenmis[df_filtrelenmis["ad"] == st.session_state.secilen_yerlesim].iloc[0]
+        uretilmedi(ad)
 
-        st.markdown(
-            f"""
-            <div style="background-color: #ece2c3; border: 2px solid #b5a47c; padding: 22px; border-radius: 8px; margin-top: 10px;">
-            """, 
-            unsafe_allow_html=True
-        )
 
-        col_baslik, col_rozets = st.columns([4, 1])
-        with col_baslik:
-            st.markdown(f"### {aktif_satir['ad']}")
-        with col_rozets:
-            rozet_bg = "#2b2b2b" if "Bilinen" in str(aktif_satir['tip']) else "#d9c39a"
-            rozet_renk = "#ffffff" if "Bilinen" in str(aktif_satir['tip']) else "#7a3e1e"
-            st.markdown(f"<div style='background-color: {rozet_bg}; border: 1px solid #b5a47c; padding: 8px 12px; border-radius: 6px; text-align: center; font-weight: bold; color: {rozet_renk}; font-size: 13px;'>{aktif_satir['durum']}</div>", unsafe_allow_html=True)
+def uretilmedi(ad):
+    st.info(f"Bu sonuç henüz üretilmedi (`sonuclar/{ad}` bulunamadı). Önce analiz betiklerini çalıştırın.")
 
-        st.markdown("<hr style='border: 0; border-top: 1px solid #b5a47c; margin: 10px 0;'>", unsafe_allow_html=True)
 
-        c1, c2, c3, c4, c5 = st.columns(5)
+degiskenler = oku_csv("degiskenler.csv")
+metrik = oku_json("model_metrikleri.json")
+
+st.title("Anadolu'da Neolitik, Kalkolitik ve Tunç Çağı Yerleşim Seçimi")
+st.markdown("Coğrafi değişkenler ve Random Forest ile dönemler arası karşılaştırma. "
+            "Bu sayfadaki bütün sayılar, depodaki analiz betiklerinin ürettiği dosyalardan okunur.")
+if metrik:
+    c = metrik["calistirma"]
+    st.caption(f"Son analiz: {c['tarih']} · n = {c['n']} yerleşim · scikit-learn {c['scikit_learn']} · "
+               f"rastgele tohum {c['rastgele_tohum']}")
+
+sekmeler = st.tabs(["Veri", "Dönem karşılaştırması", "Model", "Neyi öğrendi?",
+                    "Hipotezler", "Sınırlılıklar ve etik"])
+
+# ---------------------------------------------------------------- Veri
+with sekmeler[0]:
+    if degiskenler is None:
+        uretilmedi("degiskenler.csv")
+    else:
+        sayim = degiskenler["ilk_donem"].value_counts().reindex(DONEMLER, fill_value=0)
+        kol = st.columns(4)
+        kol[0].metric("Toplam yerleşim", len(degiskenler))
+        for i, d in enumerate(DONEMLER, 1):
+            kol[i].metric(DONEM_AD[d], int(sayim[d]))
+        st.markdown("**Kaynaklara göre dağılım**")
+        st.dataframe(pd.crosstab(degiskenler["kaynak"], degiskenler["ilk_donem"]).reindex(columns=DONEMLER, fill_value=0))
+
+        secim = st.multiselect("Haritada gösterilecek dönemler", DONEMLER, default=DONEMLER,
+                               format_func=lambda d: DONEM_AD[d])
+        harita = folium.Map(location=[degiskenler.lat.mean(), degiskenler.lon.mean()], zoom_start=6,
+                            tiles="CartoDB positron")
+        for _, r in degiskenler[degiskenler.ilk_donem.isin(secim)].iterrows():
+            folium.CircleMarker([r.lat, r.lon], radius=4, color=RENK[r.ilk_donem], fill=True,
+                                fill_opacity=0.8, weight=1,
+                                tooltip=f"{r['ad']} · {DONEM_AD[r.ilk_donem]} · kaynak: {r['kaynak']}").add_to(harita)
+        st_folium(harita, height=480, use_container_width=True, returned_objects=[])
+        st.caption("Noktalar, yayımlanmış arkeolojik envanterlerdeki bilinen yerleşimlerdir. "
+                   "Her yerleşimin kaynağı veri tablosundaki 'kaynak' ve 'kaynak_kayit' sütunlarındadır.")
+        with st.expander("Veri tablosu"):
+            st.dataframe(degiskenler, use_container_width=True)
+
+# ---------------------------------------------------------------- Dönem karşılaştırması
+with sekmeler[1]:
+    ist = oku_csv("istatistik.csv")
+    if ist is None:
+        uretilmedi("istatistik.csv")
+    else:
+        st.markdown("Her değişken için Kruskal-Wallis testi. **ε²** etki büyüklüğüdür "
+                    "(yaklaşık: 0,01 küçük · 0,06 orta · 0,14 büyük).")
+        goster = ist.rename(columns={f"ortanca_{d}": f"Ortanca {DONEM_AD[d]}" for d in DONEMLER})
+        st.dataframe(goster.round({"H": 2, "epsilon2": 3, **{f"Ortanca {DONEM_AD[d]}": 1 for d in DONEMLER}}),
+                     use_container_width=True)
+        grafik("kutu_grafikleri.png")
+        ik = oku_csv("ikili_testler.csv")
+        if ik is not None:
+            with st.expander("İkili karşılaştırmalar (Mann-Whitney U, Bonferroni düzeltmeli)"):
+                st.dataframe(ik, use_container_width=True)
+
+# ---------------------------------------------------------------- Model
+with sekmeler[2]:
+    if metrik is None:
+        uretilmedi("model_metrikleri.json")
+    else:
+        st.markdown("**Dengeli doğruluk** (şans düzeyi: 0,333). Mekânsal doğrulamada model, "
+                    "eğitimde hiç görmediği coğrafi bloklarda test edilir.")
+        kol = st.columns(4)
+        kol[0].metric("Random Forest · mekânsal", f"{metrik['rf_mekansal']['dengeli_dogruluk_ort']:.3f}",
+                      help="Raporlanması gereken asıl sonuç")
+        kol[1].metric("Random Forest · rastgele", f"{metrik['rf_rastgele']['dengeli_dogruluk_ort']:.3f}",
+                      help="Komşu yerleşimler hem eğitimde hem testte olduğu için genellikle şişkindir")
+        kol[2].metric("Lojistik regresyon · mekânsal", f"{metrik['lojistik_mekansal']['dengeli_dogruluk_ort']:.3f}")
+        e = metrik["etiket_karistirma"]
+        kol[3].metric("Etiket karıştırma testi p", f"{e['p']:.3g}",
+                      help=f"Etiketler karıştırıldığında ortalama skor {e['karisik_ort']:.3f}")
+        c1, c2 = st.columns(2)
         with c1:
-            st.caption("Konum")
-            st.markdown(f"**{aktif_satir['lat']}°K, {aktif_satir['lng']}°D**")
+            grafik("karmasiklik.png", "Satırlar gerçek dönem, sütunlar modelin tahmini.")
         with c2:
-            st.caption("Yükseklik")
-            st.markdown(f"**{aktif_satir['yukseklik']}**")
-        with c3:
-            st.caption("Su kaynağına mesafe")
-            st.markdown(f"**{aktif_satir['su_mesafesi']}**")
-        with c4:
-            st.caption("Eğim")
-            st.markdown(f"**{aktif_satir['egim']}**")
-        with c5:
-            st.caption("Toprak verimliliği")
-            st.markdown(f"**{aktif_satir['toprak']}**")
-            
-        st.markdown("<hr style='border: 0; border-top: 1px solid #b5a47c; margin: 10px 0;'>", unsafe_allow_html=True)
-        st.markdown(f"**Model değerlendirmesi / Bilimsel Doğrulama:** [{aktif_satir['lat']}°K, {aktif_satir['lng']}°D] koordinatlarında yer alan {aktif_satir['ad']} bölgesi için {aktif_satir['faktor']} odaklı coğrafi eşik analizi tamamlanmış olup, {aktif_satir['donem']} arkeolojik profiliyle doğrulanmıştır.")
+            st.markdown("**Sınıf başına F1**")
+            st.dataframe(pd.Series(metrik["rf_mekansal"]["f1_sinif"], name="F1"))
+            duy = oku_csv("duyarlilik.csv")
+            st.markdown("**Duyarlılık analizleri**")
+            if duy is not None:
+                st.dataframe(duy.round(3), use_container_width=True)
+            else:
+                uretilmedi("duyarlilik.csv")
 
-        st.markdown("</div>", unsafe_allow_html=True)
+# ---------------------------------------------------------------- Neyi öğrendi?
+with sekmeler[3]:
+    st.markdown("**Permütasyon önemi:** Bir değişkenin değerleri karıştırıldığında modelin başarısı ne kadar düşüyor? "
+                "Kırmızı noktalar, modern yol ve köy mesafesi (araştırma önyargısı) modele eklendiğindeki durumu gösterir.")
+    grafik("onem.png")
+    st.markdown("**Dönem geçişleri:** Neolitik→Kalkolitik ve Kalkolitik→Tunç ayrımında hangi tema öne çıkıyor?")
+    grafik("kayma.png")
+    donem = st.selectbox("Kısmi bağımlılık grafiği", DONEMLER, format_func=lambda d: DONEM_AD[d])
+    grafik(f"kismi_bagimlilik_{donem}.png",
+           "Diğer değişkenler sabitken, bir değişken değiştikçe bu döneme ait olma olasılığı nasıl değişiyor?")
+
+# ---------------------------------------------------------------- Hipotezler
+with sekmeler[4]:
+    hip = oku_csv("hipotezler.csv")
+    if hip is None:
+        uretilmedi("hipotezler.csv")
+    else:
+        st.markdown("Hipotezler ve eşikler analizden **önce** `ON_KAYIT.md` dosyasına yazılıp kaydedilmiştir.")
+        for _, r in hip.iterrows():
+            simge = "✅" if r.karar.startswith("Destekleniyor") else ("🟡" if r.karar.startswith("Kısmen") else "⬜")
+            st.markdown(f"#### {simge} {r.hipotez}: {r.karar}")
+            st.caption(r.ayrinti)
+
+# ---------------------------------------------------------------- Sınırlılıklar
+with sekmeler[5]:
+    st.markdown("""
+- **Modern coğrafya:** Akarsu ve yükseklik verileri bugünün haritalarından alınmıştır. Akarsular yatak değiştirmiş, ovalar alüvyonla dolmuş olabilir.
+- **Araştırma önyargısı:** Yerleşimler, arkeologların araştırma yaptığı yerlerde bilinir. Bu etki, modern yol ve köy mesafesiyle ayrıca ölçülmüştür (bkz. H0).
+- **Dönem etiketleri:** Birçok yerleşimin dönemi yüzey buluntularına dayanır. Hedef değişken, yerleşimin ilk iskân edildiği dönemdir.
+- **Veri kaynakları:** Dönemler farklı envanterlerden geliyorsa fark kısmen kaynak farkından doğabilir; bu, duyarlılık analizinde tek kaynakla tekrar edilerek kontrol edilmiştir.
+- **Etik:** Bu uygulama "henüz kazılmamış aday yerleşim" koordinatı göstermez. Ayrıntılı tahmin haritaları kaçak kazıya yol gösterebileceği için (2863 sayılı Kanun) yayımlanmamıştır.
+""")
