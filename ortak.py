@@ -14,6 +14,10 @@ GRAFIK = SONUC / "grafikler"
 YERLESIM_CSV = VERI / "yerlesimler_temiz.csv"
 DEGISKEN_CSV = SONUC / "degiskenler.csv"
 
+# Çalışma bölgesi: (batı boylam, güney enlem, doğu boylam, kuzey enlem)
+# Batı Anadolu + Göller Bölgesi. Bölge değişirse burayı ve ON_KAYIT.md'yi güncelleyin.
+BOLGE_SINIRI = (26.0, 36.0, 32.5, 41.0)
+
 RASTGELE = 42                      # Bütün rastgele işlemler için sabit tohum
 DONEMLER = ["Neolitik", "Kalkolitik", "Tunc"]   # Hedef sınıflar (sıralı)
 

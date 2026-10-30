@@ -26,6 +26,9 @@ def main():
     eksik = [s for s in ZORUNLU if s not in df.columns]
     if eksik:
         raise SystemExit(f"Eksik sütun(lar): {eksik}. Veri sözlüğüne bakın (Protokol §4.1).")
+    if df.empty:
+        raise SystemExit("Tablo henüz boş: veri/yerlesimler_temiz.csv dosyasına yerleşimleri ekleyin "
+                         "(Adım adım rehber, Aşama 2).")
 
     # 1) Boş hücreler
     for s in ZORUNLU:
@@ -43,6 +46,11 @@ def main():
         kotu = df[~(df["lat"].between(35, 43) & df["lon"].between(25, 45))]
         hatalar.append(f"Türkiye sınırları dışında {len(kotu)} koordinat (enlem/boylam ters yazılmış olabilir): "
                        f"{kotu['site_id'].tolist()[:10]}")
+    b, g, d, k = o.BOLGE_SINIRI
+    disarida = df[~(df["lon"].between(b, d) & df["lat"].between(g, k))]
+    if len(disarida):
+        hatalar.append(f"Çalışma bölgesi dışında {len(disarida)} kayıt var (ortak.py, BOLGE_SINIRI). "
+                       f"Bunları tablodan çıkarın: {disarida['site_id'].tolist()[:10]}")
     if not df["ilk_donem"].isin(o.DONEMLER).all():
         hatalar.append(f"ilk_donem yalnızca {o.DONEMLER} olabilir. Bulunan: {sorted(df['ilk_donem'].unique())}")
     if not df["koord_kesinlik"].isin([1, 2, 3]).all():
