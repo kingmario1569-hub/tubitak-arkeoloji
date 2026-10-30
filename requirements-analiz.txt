@@ -1,0 +1,10 @@
+# Analiz betikleri için (Google Colab veya kendi bilgisayarınızda): pip install -r requirements-analiz.txt
+numpy==2.1.3
+pandas==2.2.3
+geopandas==1.0.1
+shapely==2.0.6
+pyproj==3.7.0
+rasterio==1.4.3
+scipy==1.14.1
+scikit-learn==1.5.2
+matplotlib==3.9.2

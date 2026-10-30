@@ -1,0 +1,4 @@
+# Büyük ham dosyalar Git'e konmaz; indirme bağlantıları veri/KAYNAKLAR.md'de
+veri/ham/
+__pycache__/
+.ipynb_checkpoints/
