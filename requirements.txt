@@ -1,5 +1,4 @@
-# Streamlit Cloud bu dosyayı kullanır (sadece uygulama için gerekenler)
-streamlit==1.40.2
-pandas==2.2.3
-folium==0.17.0
-streamlit-folium==0.23.1
+streamlit>=1.40
+pandas>=2.2
+folium>=0.17
+streamlit-folium>=0.23
