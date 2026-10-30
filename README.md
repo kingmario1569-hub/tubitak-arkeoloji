@@ -24,6 +24,7 @@ veri/yerlesimler_temiz.csv ──► 00_veri_kontrol.py ──► (hata yoksa) �
 |---|---|
 | `calistir.ipynb` | **Google Colab defteri:** Bütün adımları sırayla, kurulum gerektirmeden çalıştırır (önerilen yol) |
 | `ortak.py` | Bütün ayarlar: çalışma bölgesi (`BOLGE_SINIRI`), dönemler, değişkenler, eşikler, hipotezler. **Ön-kayıttan sonra değiştirilmez.** |
+| `veri_hazirla_luwian.py` | LuwianSiteAtlas dosyalarını (veri/kaynak/luwian/) proje tablosuna ve maden dosyasına dönüştürür |
 | `00_veri_kontrol.py` | Yerleşim tablosunu denetler (boş hücre, koordinat hatası, yakın kayıt, dönem sayıları) ve başla/durdur kararını verir |
 | `01_degisken_hesapla.py` | Copernicus DEM'den yükseklik, eğim, düz arazi oranı, TPI, görüş alanı; vektör katmanlardan su, maden, obsidiyen, geçit, yol ve köy mesafelerini hesaplar |
 | `02_model.py` | Kruskal-Wallis + ε², Random Forest (mekânsal ve rastgele doğrulama), lojistik regresyon, etiket karıştırma testi, permütasyon önemi, kısmi bağımlılık, dönem geçişi analizi, duyarlılık analizleri, hipotez kararları |
